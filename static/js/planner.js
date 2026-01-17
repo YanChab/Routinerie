@@ -3,7 +3,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const menuCells = document.querySelectorAll('.menu-cell');
     const menuModal = document.getElementById('menu-modal');
     const menuForm = document.getElementById('menu-form');
-    const cancelBtn = document.getElementById('cancel-menu');
     const deleteBtn = document.getElementById('delete-menu');
     let currentMenuId = null;
     
@@ -40,16 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Annuler l'édition
-    if (cancelBtn) {
-        cancelBtn.addEventListener('click', () => {
-            hideModal('menu-modal');
-            menuForm.reset();
-            currentMenuId = null;
-        });
-    }
-    
-    // Bouton créer une recette
+    // Supprimer un menu
     const createRecipeBtn = document.getElementById('create-recipe-btn');
     if (createRecipeBtn) {
         createRecipeBtn.addEventListener('click', () => {
