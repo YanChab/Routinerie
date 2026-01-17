@@ -27,7 +27,13 @@
             <tr>
                 <th>{{ moment|capitalize }}</th>
                 {% for jour in jours %}
-                <td class="menu-cell" data-jour="{{ jour }}" data-moment="{{ moment }}">
+                <td class="menu-cell" data-jour="{{ jour }}" data-moment="{{ moment }}"
+                    {% if menus[jour][moment] %}
+                    data-menu-id="{{ menus[jour][moment].id }}"
+                    {% if menus[jour][moment].recette %}
+                    data-recette-id="{{ menus[jour][moment].recette.id }}"
+                    {% endif %}
+                    {% endif %}>
                     {% if menus[jour][moment] %}
                         <div class="menu-content">
                             {% if menus[jour][moment].recette %}
@@ -60,12 +66,23 @@
             <input type="hidden" id="menu-semaine" value="{{ semaine }}">
             
             <div class="form-group">
-                <label for="menu-description">Description:</label>
+                <label for="menu-recette">Recette:</label>
+                <select id="menu-recette">
+                    <option value="">Aucune recette</option>
+                    {% for recette in recettes %}
+                    <option value="{{ recette.id }}">{{ recette.nom }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="menu-description">Ou description personnalisée:</label>
                 <textarea id="menu-description" rows="3" placeholder="Entrez une description..."></textarea>
             </div>
             
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">Enregistrer</button>
+                <button type="button" class="btn btn-danger" id="delete-menu" style="display:none;">Supprimer</button>
                 <button type="button" class="btn btn-secondary" id="cancel-menu">Annuler</button>
             </div>
         </form>

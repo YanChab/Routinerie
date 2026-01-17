@@ -21,7 +21,7 @@
         </div>
         <div class="card-actions">
             <button class="btn btn-sm btn-secondary">Voir</button>
-            <button class="btn btn-sm btn-danger">Supprimer</button>
+            <button class="btn btn-sm btn-danger delete-recette" data-id="{{ recette.id }}">Supprimer</button>
         </div>
     </div>
     {% else %}
@@ -54,6 +54,13 @@
                 <div class="form-group">
                     <label for="recette-portions">Nombre de portions:</label>
                     <input type="number" id="recette-portions" value="4">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Ingrédients (optionnel):</label>
+                <div id="ingredients-list">
+                    <p class="empty-state" style="padding: 1rem;">Aucun ingrédient ajouté. Vous pourrez les ajouter plus tard.</p>
                 </div>
             </div>
             

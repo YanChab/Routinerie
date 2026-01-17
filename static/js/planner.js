@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const menuModal = document.getElementById('menu-modal');
     const menuForm = document.getElementById('menu-form');
     const cancelBtn = document.getElementById('cancel-menu');
+    const deleteBtn = document.getElementById('delete-menu');
+    let currentMenuId = null;
     
     // Ouvrir le modal pour éditer un menu
     menuCells.forEach(cell => {
@@ -16,10 +18,25 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Récupérer le contenu actuel si présent
             const content = this.querySelector('.menu-content');
-            if (content && !content.classList.contains('empty')) {
+            const menuData = this.dataset.menuId;
+            const recetteId = this.dataset.recetteId;
+            
+            // Réinitialiser le formulaire
+            document.getElementById('menu-recette').value = '';
+            document.getElementById('menu-description').value = '';
+            currentMenuId = menuData || null;
+            
+            if (recetteId) {
+                document.getElementById('menu-recette').value = recetteId;
+            } else if (content && !content.classList.contains('empty')) {
                 document.getElementById('menu-description').value = content.textContent.trim();
+            }
+            
+            // Afficher/masquer le bouton supprimer
+            if (currentMenuId) {
+                deleteBtn.style.display = 'inline-block';
             } else {
-                document.getElementById('menu-description').value = '';
+                deleteBtn.style.display = 'none';
             }
             
             showModal('menu-modal');
@@ -31,6 +48,25 @@ document.addEventListener('DOMContentLoaded', function() {
         cancelBtn.addEventListener('click', () => {
             hideModal('menu-modal');
             menuForm.reset();
+            currentMenuId = null;
+        });
+    }
+    
+    // Supprimer un menu
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', async () => {
+            if (!currentMenuId || !confirm('Êtes-vous sûr de vouloir supprimer ce menu ?')) {
+                return;
+            }
+            
+            try {
+                const result = await apiRequest(`/api/menu/${currentMenuId}`, 'DELETE');
+                if (result.success) {
+                    location.reload();
+                }
+            } catch (error) {
+                alert('Erreur lors de la suppression du menu');
+            }
         });
     }
     
@@ -39,18 +75,20 @@ document.addEventListener('DOMContentLoaded', function() {
         menuForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
+            const recetteId = document.getElementById('menu-recette').value;
+            const description = document.getElementById('menu-description').value;
+            
             const data = {
                 jour: document.getElementById('menu-jour').value,
                 moment: document.getElementById('menu-moment').value,
                 semaine: document.getElementById('menu-semaine').value,
-                description: document.getElementById('menu-description').value,
-                recette_id: null // Pour l'instant, pas de recette associée
+                recette_id: recetteId ? parseInt(recetteId) : null,
+                description: !recetteId ? description : null
             };
             
             try {
                 const result = await apiRequest('/api/menu', 'POST', data);
                 if (result.success) {
-                    // Recharger la page pour voir les changements
                     location.reload();
                 }
             } catch (error) {
@@ -65,15 +103,17 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (prevWeekBtn) {
         prevWeekBtn.addEventListener('click', () => {
-            // TODO: Implémenter la navigation
-            alert('Fonctionnalité à venir');
+            const urlParams = new URLSearchParams(window.location.search);
+            const currentWeek = parseInt(urlParams.get('week') || '0');
+            window.location.href = '/?week=' + (currentWeek - 1);
         });
     }
     
     if (nextWeekBtn) {
         nextWeekBtn.addEventListener('click', () => {
-            // TODO: Implémenter la navigation
-            alert('Fonctionnalité à venir');
+            const urlParams = new URLSearchParams(window.location.search);
+            const currentWeek = parseInt(urlParams.get('week') || '0');
+            window.location.href = '/?week=' + (currentWeek + 1);
         });
     }
 });

@@ -40,4 +40,25 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+    
+    // Gérer la suppression des ingrédients
+    const deleteButtons = document.querySelectorAll('.delete-ingredient');
+    deleteButtons.forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const ingredientId = this.dataset.id;
+            
+            if (!confirm('Êtes-vous sûr de vouloir supprimer cet ingrédient ?')) {
+                return;
+            }
+            
+            try {
+                const result = await apiRequest(`/api/ingredient/${ingredientId}`, 'DELETE');
+                if (result.success) {
+                    location.reload();
+                }
+            } catch (error) {
+                alert('Erreur lors de la suppression de l\'ingrédient');
+            }
+        });
+    });
 });

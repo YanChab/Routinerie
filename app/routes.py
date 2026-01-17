@@ -8,9 +8,10 @@ bp = Blueprint('main', __name__)
 @bp.route('/')
 def index():
     """Page d'accueil - Planificateur de menus"""
-    # Obtenir la date du lundi de la semaine actuelle
+    # Obtenir la semaine demandée ou la semaine actuelle
+    week_offset = request.args.get('week', 0, type=int)
     today = datetime.now().date()
-    monday = today - timedelta(days=today.weekday())
+    monday = today - timedelta(days=today.weekday()) + timedelta(weeks=week_offset)
     
     # Récupérer les menus de la semaine
     jours = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi']
@@ -27,11 +28,16 @@ def index():
             ).first()
             menus[jour][moment] = menu
     
+    # Récupérer toutes les recettes pour le sélecteur
+    recettes = Recette.query.order_by(Recette.nom).all()
+    
     return render_template('menu_planner.html', 
                          menus=menus, 
                          jours=jours, 
                          moments=moments,
-                         semaine=monday)
+                         semaine=monday,
+                         recettes=recettes,
+                         week_offset=week_offset)
 
 
 @bp.route('/recettes')
@@ -116,6 +122,33 @@ def create_ingredient():
     
     ingredient = Ingredient(
         nom=data.get('nom'),
+
+
+@bp.route('/api/ingredient/<int:id>', methods=['DELETE'])
+def delete_ingredient(id):
+    """API pour supprimer un ingrédient"""
+    ingredient = Ingredient.query.get_or_404(id)
+    db.session.delete(ingredient)
+    db.session.commit()
+    return jsonify({'success': True})
+
+
+@bp.route('/api/recette/<int:id>', methods=['DELETE'])
+def delete_recette(id):
+    """API pour supprimer une recette"""
+    recette = Recette.query.get_or_404(id)
+    db.session.delete(recette)
+    db.session.commit()
+    return jsonify({'success': True})
+
+
+@bp.route('/api/menu/<int:id>', methods=['DELETE'])
+def delete_menu(id):
+    """API pour supprimer un menu"""
+    menu = Menu.query.get_or_404(id)
+    db.session.delete(menu)
+    db.session.commit()
+    return jsonify({'success': True})
         unite=data.get('unite')
     )
     db.session.add(ingredient)
