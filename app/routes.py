@@ -122,6 +122,12 @@ def create_ingredient():
     
     ingredient = Ingredient(
         nom=data.get('nom'),
+        unite=data.get('unite')
+    )
+    db.session.add(ingredient)
+    db.session.commit()
+    
+    return jsonify({'success': True, 'ingredient_id': ingredient.id})
 
 
 @bp.route('/api/ingredient/<int:id>', methods=['DELETE'])
@@ -149,9 +155,3 @@ def delete_menu(id):
     db.session.delete(menu)
     db.session.commit()
     return jsonify({'success': True})
-        unite=data.get('unite')
-    )
-    db.session.add(ingredient)
-    db.session.commit()
-    
-    return jsonify({'success': True, 'ingredient_id': ingredient.id})
