@@ -42,8 +42,13 @@ document.addEventListener('DOMContentLoaded', function() {
         if (search.length < 2) return [];
         
         try {
-            const response = await apiRequest(`/api/ingredients/search?q=${encodeURIComponent(search)}&limit=10`);
-            return response;
+            const response = await fetch(`/api/ingredients/search?q=${encodeURIComponent(search)}&limit=10`);
+            if (!response.ok) {
+                console.error('Erreur serveur:', response.status);
+                return [];
+            }
+            const data = await response.json();
+            return data;
         } catch (error) {
             console.error('Erreur lors de la recherche d\'ingrédients:', error);
             return [];
@@ -340,6 +345,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Système de recherche d'ingrédients pour le modal d'édition
     let editSelectedIngredient = null;
+    let editSearchTimeout = null;
     const editIngredientSearch = document.getElementById('edit-ingredient-search');
     const editIngredientSuggestions = document.getElementById('edit-ingredient-suggestions');
     
@@ -375,10 +381,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     if (editIngredientSearch) {
-        editIngredientSearch.addEventListener('input', (e) => {
-            const filtered = filterIngredients(e.target.value);
-            showEditIngredientSuggestions(filtered);
-            editSelectedIngredient = null;
+        editIngredientSearch.addEventListener('input', async (e) => {
+            clearTimeout(editSearchTimeout);
+            
+            if (e.target.value.trim().length < 2) {
+                editIngredientSuggestions.style.display = 'none';
+                editSelectedIngredient = null;
+                return;
+            }
+            
+            editSearchTimeout = setTimeout(async () => {
+                const filtered = await searchIngredientsOnServer(e.target.value);
+                showEditIngredientSuggestions(filtered);
+                editSelectedIngredient = null;
+            }, 300);
         });
         
         editIngredientSearch.addEventListener('keydown', (e) => {
