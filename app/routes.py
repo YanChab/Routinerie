@@ -256,13 +256,19 @@ def create_ingredient():
     if existing:
         return jsonify({'success': False, 'message': 'Cet ingrédient existe déjà'}), 409
     
+    categorie = data.get('categorie', 'Autre').strip()
+    categories_valides = Ingredient.CATEGORIES
+    if categorie not in categories_valides:
+        return jsonify({'success': False, 'message': f'Catégorie invalide'}), 400
+    
     unite = data.get('unite', 'g').strip()
-    unites_valides = ['g', 'kg', 'ml', 'L', 'cl', 'pièce', 'cuillère', 'tasse', 'pincée']
+    unites_valides = ['g', 'kg', 'ml', 'L', 'cl', 'pièce', 'cuillère', 'tasse', 'pincée', 'c. à soupe', 'c. à café']
     if unite not in unites_valides:
         return jsonify({'success': False, 'message': f'Unité invalide. Unités valides: {", ".join(unites_valides)}'}), 400
     
     ingredient = Ingredient(
         nom=nom,
+        categorie=categorie,
         unite=unite
     )
     db.session.add(ingredient)

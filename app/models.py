@@ -8,10 +8,25 @@ class Ingredient(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.String(100), nullable=False)
     unite = db.Column(db.String(20), nullable=False)  # kg, g, L, ml, pièce, etc.
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    categorie = db.Column(db.String(50), nullable=False, default='Autre')  # Catégorie d'ingrédient
     
     # Relation avec RecetteIngredient
     recette_ingredients = db.relationship('RecetteIngredient', back_populates='ingredient', cascade='all, delete-orphan')
+    
+    # Catégories disponibles
+    CATEGORIES = [
+        'Légumes',
+        'Fruits',
+        'Viandes',
+        'Poissons',
+        'Produits laitiers',
+        'Céréales & Féculents',
+        'Épices & Condiments',
+        'Huiles & Matières grasses',
+        'Sucres & Produits sucrés',
+        'Boissons',
+        'Autre'
+    ]
     
     def __repr__(self):
         return f'<Ingredient {self.nom}>'

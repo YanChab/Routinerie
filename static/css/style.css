@@ -699,6 +699,15 @@ footer {
     font-weight: bold;
 }
 
+.badge-category {
+    background-color: #27ae60;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
 .empty-state {
     text-align: center;
     padding: 3rem;

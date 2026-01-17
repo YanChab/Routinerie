@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const data = {
                 nom: document.getElementById('ingredient-nom').value,
+                categorie: document.getElementById('ingredient-categorie').value,
                 unite: document.getElementById('ingredient-unite').value
             };
             

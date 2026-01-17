@@ -13,8 +13,8 @@
         <thead>
             <tr>
                 <th>Nom</th>
+                <th>Catégorie</th>
                 <th>Unité</th>
-                <th>Date d'ajout</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -22,8 +22,8 @@
             {% for ingredient in ingredients %}
             <tr>
                 <td>{{ ingredient.nom }}</td>
+                <td><span class="badge badge-category">{{ ingredient.categorie }}</span></td>
                 <td>{{ ingredient.unite }}</td>
-                <td>{{ ingredient.created_at.strftime('%d/%m/%Y') }}</td>
                 <td>
                     <button class="btn btn-sm btn-secondary">Modifier</button>
                     <button class="btn btn-sm btn-danger delete-ingredient" data-id="{{ ingredient.id }}">Supprimer</button>
@@ -47,6 +47,24 @@
             <div class="form-group">
                 <label for="ingredient-nom">Nom de l'ingrédient:</label>
                 <input type="text" id="ingredient-nom" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="ingredient-categorie">Catégorie:</label>
+                <select id="ingredient-categorie" required>
+                    <option value="">Sélectionner...</option>
+                    <option value="Légumes">Légumes</option>
+                    <option value="Fruits">Fruits</option>
+                    <option value="Viandes">Viandes</option>
+                    <option value="Poissons">Poissons</option>
+                    <option value="Produits laitiers">Produits laitiers</option>
+                    <option value="Céréales & Féculents">Céréales & Féculents</option>
+                    <option value="Épices & Condiments">Épices & Condiments</option>
+                    <option value="Huiles & Matières grasses">Huiles & Matières grasses</option>
+                    <option value="Sucres & Produits sucrés">Sucres & Produits sucrés</option>
+                    <option value="Boissons">Boissons</option>
+                    <option value="Autre">Autre</option>
+                </select>
             </div>
             
             <div class="form-group">
