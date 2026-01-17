@@ -101,6 +101,10 @@ def move_menu(menu_id):
     if not menu:
         return jsonify({'success': False, 'message': 'Menu non trouvé'}), 404
     
+    # Sauvegarder les coordonnées d'origine
+    jour_origine = menu.jour
+    moment_origine = menu.moment
+    
     # Vérifier s'il y a déjà un menu à la destination
     menu_existant = Menu.query.filter_by(
         jour=nouveau_jour,
@@ -109,8 +113,9 @@ def move_menu(menu_id):
     ).first()
     
     if menu_existant and menu_existant.id != menu_id:
-        # Supprimer le menu existant à la destination
-        db.session.delete(menu_existant)
+        # Échanger les deux menus (swap)
+        menu_existant.jour = jour_origine
+        menu_existant.moment = moment_origine
     
     # Déplacer le menu
     menu.jour = nouveau_jour
