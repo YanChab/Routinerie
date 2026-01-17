@@ -603,3 +603,37 @@ def export_shopping_list_pdf():
     )
 
 
+@bp.route('/api/menu/<int:menu_id>/equilibre', methods=['GET'])
+def get_menu_equilibre(menu_id):
+    """API pour obtenir l'analyse d'équilibre d'un menu"""
+    menu = Menu.query.get(menu_id)
+    if not menu:
+        return jsonify({'success': False, 'message': 'Menu non trouvé'}), 404
+    
+    analyse = menu.analyser_equilibre()
+    return jsonify({
+        'success': True,
+        'menu_id': menu_id,
+        'analyse': analyse
+    })
+
+
+@bp.route('/api/menus/equilibre', methods=['POST'])
+def get_menus_equilibre():
+    """API pour obtenir l'analyse d'équilibre de plusieurs menus"""
+    data = request.get_json()
+    menu_ids = data.get('menu_ids', [])
+    
+    if not menu_ids:
+        return jsonify({'success': False, 'message': 'Aucun menu spécifié'}), 400
+    
+    resultats = {}
+    for menu_id in menu_ids:
+        menu = Menu.query.get(menu_id)
+        if menu:
+            resultats[str(menu_id)] = menu.analyser_equilibre()
+    
+    return jsonify({
+        'success': True,
+        'analyses': resultats
+    })

@@ -40,6 +40,10 @@
                         <div class="menu-content">
                             {% if menus[jour][moment].recette %}
                                 <strong>{{ menus[jour][moment].recette.nom }}</strong>
+                                <!-- Badge d'équilibre nutritionnel -->
+                                <div class="equilibre-badge" data-menu-id="{{ menus[jour][moment].id }}">
+                                    <span class="equilibre-indicator">⏳</span>
+                                </div>
                             {% else %}
                                 {{ menus[jour][moment].description or 'Cliquez pour ajouter' }}
                             {% endif %}
@@ -55,13 +59,13 @@
             {% endfor %}
         </tbody>
     </table>
-</div>
-
-<!-- Boutons pour afficher les listes -->
-<div style="margin-top: 1rem; text-align: center; display: flex; gap: 1rem; justify-content: center;">
-    <button type="button" class="btn btn-primary" id="show-recipes-list-btn" title="Liste des recettes">📋</button>
-    <button type="button" class="btn btn-primary" id="show-ingredients-list-btn" title="Liste des ingrédients">🥕</button>
-    <button type="button" class="btn btn-primary" id="show-shopping-list-btn" title="Liste de courses">🛒</button>
+    
+    <!-- Boutons pour afficher les listes -->
+    <div style="margin-top: 1.5rem; text-align: center; display: flex; gap: 1rem; justify-content: center;">
+        <button type="button" class="btn btn-primary" id="show-recipes-list-btn" title="Liste des recettes">📋</button>
+        <button type="button" class="btn btn-primary" id="show-ingredients-list-btn" title="Liste des ingrédients">🥕</button>
+        <button type="button" class="btn btn-primary" id="show-shopping-list-btn" title="Liste de courses">🛒</button>
+    </div>
 </div>
 
 <!-- Modal pour éditer un menu -->
@@ -292,4 +296,5 @@
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/planner.js') }}"></script>
+<script src="{{ url_for('static', filename='js/equilibre.js') }}"></script>
 {% endblock %}

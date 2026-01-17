@@ -1,0 +1,6 @@
+# Dossier de sauvegarde automatique
+# Les fichiers de sauvegarde database_backup_*.db sont créés ici par le script backup.sh
+# Les sauvegardes de plus de 30 jours sont automatiquement supprimées
+
+*.db
+!.gitkeep

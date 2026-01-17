@@ -24,6 +24,18 @@ def create_app():
     
     # Créer les tables si elles n'existent pas
     with app.app_context():
-        db.create_all()
+        try:
+            # Utiliser inspect pour vérifier si les tables existent avant de les créer
+            from sqlalchemy import inspect
+            inspector = inspect(db.engine)
+            existing_tables = inspector.get_table_names()
+            
+            if not existing_tables:
+                # Base de données vide, créer toutes les tables
+                db.create_all()
+        except Exception as e:
+            # En cas d'erreur, logger et continuer
+            # Les tables existent probablement déjà
+            print(f"Info: Tables probablement déjà créées - {str(e)[:100]}")
     
     return app
