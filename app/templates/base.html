@@ -7,17 +7,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <nav class="navbar">
-        <div class="container">
-            <h1 class="logo">Routinerie</h1>
-            <ul class="nav-links">
-                <li><a href="{{ url_for('main.index') }}">Planificateur</a></li>
-                <li><a href="{{ url_for('main.recettes') }}">Recettes</a></li>
-                <li><a href="{{ url_for('main.ingredients') }}">Ingrédients</a></li>
-            </ul>
-        </div>
-    </nav>
-
     <main class="container">
         <!-- Zone de notifications -->
         <div id="notification" class="notification" style="display: none;"></div>

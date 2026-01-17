@@ -267,6 +267,28 @@ def create_recette():
     }), 201
 
 
+@bp.route('/api/ingredients', methods=['GET'])
+def get_ingredients():
+    """API pour récupérer tous les ingrédients"""
+    ingredients_list = Ingredient.query.order_by(Ingredient.nom).all()
+    return jsonify([{
+        'id': ing.id,
+        'nom': ing.nom,
+        'categorie': ing.categorie
+    } for ing in ingredients_list])
+
+
+@bp.route('/api/recettes', methods=['GET'])
+def get_recettes():
+    """API pour récupérer toutes les recettes"""
+    recettes_list = Recette.query.order_by(Recette.nom).all()
+    return jsonify([{
+        'id': rec.id,
+        'nom': rec.nom,
+        'description': rec.description
+    } for rec in recettes_list])
+
+
 @bp.route('/api/ingredient', methods=['POST'])
 def create_ingredient():
     """API pour créer un ingrédient"""

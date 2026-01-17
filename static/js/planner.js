@@ -29,19 +29,244 @@ document.addEventListener('DOMContentLoaded', function() {
         renderIngredientsList();
     };
     
+    // Système de recherche d'ingrédients pour le modal de création
+    let allIngredients = [];
+    let selectedIngredient = null;
+    const ingredientSearch = document.getElementById('ingredient-search');
+    const ingredientSuggestions = document.getElementById('ingredient-suggestions');
+    
+    // Charger tous les ingrédients au démarrage
+    async function loadAllIngredients() {
+        try {
+            const response = await apiRequest('/api/ingredients');
+            allIngredients = response;
+            console.log('Ingrédients chargés:', allIngredients.length);
+        } catch (error) {
+            console.error('Erreur lors du chargement des ingrédients:', error);
+        }
+    }
+    
+    loadAllIngredients();
+    
+    function filterIngredients(searchText) {
+        const search = searchText.toLowerCase().trim();
+        if (!search) return [];
+        
+        const filtered = allIngredients.filter(ing => 
+            ing.nom.toLowerCase().includes(search)
+        ).slice(0, 10); // Limite à 10 suggestions
+        console.log('Recherche:', search, '- Résultats:', filtered.length);
+        return filtered;
+    }
+    
+    function showIngredientSuggestions(ingredients) {
+        console.log('Affichage des suggestions:', ingredients.length);
+        if (ingredients.length === 0) {
+            ingredientSuggestions.style.display = 'none';
+            return;
+        }
+        
+        ingredientSuggestions.innerHTML = '';
+        ingredients.forEach((ing, index) => {
+            const div = document.createElement('div');
+            div.className = 'ingredient-suggestion-item';
+            if (index === 0) div.classList.add('selected');
+            div.textContent = ing.nom;
+            div.dataset.id = ing.id;
+            div.dataset.nom = ing.nom;
+            
+            div.addEventListener('click', () => {
+                selectIngredientFromSuggestion(ing.id, ing.nom);
+            });
+            
+            ingredientSuggestions.appendChild(div);
+        });
+        
+        ingredientSuggestions.style.display = 'block';
+        console.log('Suggestions affichées, display:', ingredientSuggestions.style.display);
+    }
+    
+    function selectIngredientFromSuggestion(id, nom) {
+        selectedIngredient = { id: parseInt(id), nom: nom };
+        ingredientSearch.value = nom;
+        ingredientSuggestions.style.display = 'none';
+    }
+    
+    if (ingredientSearch) {
+        ingredientSearch.addEventListener('input', (e) => {
+            const filtered = filterIngredients(e.target.value);
+            showIngredientSuggestions(filtered);
+            selectedIngredient = null;
+        });
+        
+        ingredientSearch.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const selected = ingredientSuggestions.querySelector('.selected');
+                if (selected) {
+                    selectIngredientFromSuggestion(selected.dataset.id, selected.dataset.nom);
+                    addIngredientBtn.click();
+                }
+            } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                e.preventDefault();
+                const items = ingredientSuggestions.querySelectorAll('.ingredient-suggestion-item');
+                const selected = ingredientSuggestions.querySelector('.selected');
+                if (items.length === 0) return;
+                
+                let newIndex = 0;
+                if (selected) {
+                    selected.classList.remove('selected');
+                    const currentIndex = Array.from(items).indexOf(selected);
+                    if (e.key === 'ArrowDown') {
+                        newIndex = (currentIndex + 1) % items.length;
+                    } else {
+                        newIndex = (currentIndex - 1 + items.length) % items.length;
+                    }
+                }
+                items[newIndex].classList.add('selected');
+            }
+        });
+        
+        // Fermer les suggestions si on clique ailleurs
+        document.addEventListener('click', (e) => {
+            if (!ingredientSearch.contains(e.target) && !ingredientSuggestions.contains(e.target)) {
+                ingredientSuggestions.style.display = 'none';
+            }
+        });
+    }
+    
     if (addIngredientBtn) {
         addIngredientBtn.addEventListener('click', () => {
-            const select = document.getElementById('ingredient-select');
-            
-            if (select.value) {
-                const ingredientNom = select.options[select.selectedIndex].text;
+            if (selectedIngredient) {
                 ingredientsList.push({
-                    ingredient_id: parseInt(select.value),
-                    nom: ingredientNom
+                    ingredient_id: selectedIngredient.id,
+                    nom: selectedIngredient.nom
                 });
                 
                 renderIngredientsList();
-                select.value = '';
+                ingredientSearch.value = '';
+                selectedIngredient = null;
+                ingredientSuggestions.style.display = 'none';
+            }
+        });
+    }
+    
+    // Système de recherche de recettes pour le modal menu
+    let allRecettes = [];
+    let selectedRecette = null;
+    const menuRecetteSearch = document.getElementById('menu-recette-search');
+    const menuRecetteInput = document.getElementById('menu-recette');
+    const menuRecetteSuggestions = document.getElementById('menu-recette-suggestions');
+    
+    // Charger toutes les recettes au démarrage
+    async function loadAllRecettes() {
+        try {
+            const response = await apiRequest('/api/recettes');
+            allRecettes = response;
+            console.log('Recettes chargées:', allRecettes.length);
+        } catch (error) {
+            console.error('Erreur lors du chargement des recettes:', error);
+        }
+    }
+    
+    loadAllRecettes();
+    
+    function filterRecettes(searchText) {
+        const search = searchText.toLowerCase().trim();
+        if (!search) return [];
+        
+        const filtered = allRecettes.filter(rec => 
+            rec.nom.toLowerCase().includes(search)
+        ).slice(0, 10); // Limite à 10 suggestions
+        console.log('Recherche recette:', search, '- Résultats:', filtered.length);
+        return filtered;
+    }
+    
+    function showRecetteSuggestions(recettes) {
+        console.log('Affichage des suggestions recettes:', recettes.length);
+        if (recettes.length === 0) {
+            menuRecetteSuggestions.style.display = 'none';
+            return;
+        }
+        
+        menuRecetteSuggestions.innerHTML = '';
+        recettes.forEach((rec, index) => {
+            const div = document.createElement('div');
+            div.className = 'ingredient-suggestion-item';
+            if (index === 0) div.classList.add('selected');
+            div.textContent = rec.nom;
+            div.dataset.id = rec.id;
+            div.dataset.nom = rec.nom;
+            
+            div.addEventListener('click', () => {
+                selectRecetteFromSuggestion(rec.id, rec.nom);
+            });
+            
+            menuRecetteSuggestions.appendChild(div);
+        });
+        
+        menuRecetteSuggestions.style.display = 'block';
+        console.log('Suggestions recettes affichées');
+    }
+    
+    function selectRecetteFromSuggestion(id, nom) {
+        selectedRecette = { id: parseInt(id), nom: nom };
+        menuRecetteSearch.value = nom;
+        menuRecetteInput.value = id;
+        menuRecetteSuggestions.style.display = 'none';
+        
+        // Afficher le bouton modifier si une recette est sélectionnée
+        const editRecipeBtn = document.getElementById('edit-recipe-btn');
+        if (editRecipeBtn) {
+            editRecipeBtn.style.display = id ? 'flex' : 'none';
+        }
+    }
+    
+    if (menuRecetteSearch) {
+        menuRecetteSearch.addEventListener('input', (e) => {
+            const filtered = filterRecettes(e.target.value);
+            showRecetteSuggestions(filtered);
+            selectedRecette = null;
+            menuRecetteInput.value = '';
+            
+            // Masquer le bouton modifier si le champ est modifié
+            const editRecipeBtn = document.getElementById('edit-recipe-btn');
+            if (editRecipeBtn) {
+                editRecipeBtn.style.display = 'none';
+            }
+        });
+        
+        menuRecetteSearch.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const selected = menuRecetteSuggestions.querySelector('.selected');
+                if (selected) {
+                    selectRecetteFromSuggestion(selected.dataset.id, selected.dataset.nom);
+                }
+            } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                e.preventDefault();
+                const items = menuRecetteSuggestions.querySelectorAll('.ingredient-suggestion-item');
+                const selected = menuRecetteSuggestions.querySelector('.selected');
+                if (items.length === 0) return;
+                
+                let newIndex = 0;
+                if (selected) {
+                    selected.classList.remove('selected');
+                    const currentIndex = Array.from(items).indexOf(selected);
+                    if (e.key === 'ArrowDown') {
+                        newIndex = (currentIndex + 1) % items.length;
+                    } else {
+                        newIndex = (currentIndex - 1 + items.length) % items.length;
+                    }
+                }
+                items[newIndex].classList.add('selected');
+            }
+        });
+        
+        // Fermer les suggestions si on clique ailleurs
+        document.addEventListener('click', (e) => {
+            if (!menuRecetteSearch.contains(e.target) && !menuRecetteSuggestions.contains(e.target)) {
+                menuRecetteSuggestions.style.display = 'none';
             }
         });
     }
@@ -69,19 +294,97 @@ document.addEventListener('DOMContentLoaded', function() {
         renderEditIngredientsList();
     };
     
+    // Système de recherche d'ingrédients pour le modal d'édition
+    let editSelectedIngredient = null;
+    const editIngredientSearch = document.getElementById('edit-ingredient-search');
+    const editIngredientSuggestions = document.getElementById('edit-ingredient-suggestions');
+    
+    function showEditIngredientSuggestions(ingredients) {
+        if (ingredients.length === 0) {
+            editIngredientSuggestions.style.display = 'none';
+            return;
+        }
+        
+        editIngredientSuggestions.innerHTML = '';
+        ingredients.forEach((ing, index) => {
+            const div = document.createElement('div');
+            div.className = 'ingredient-suggestion-item';
+            if (index === 0) div.classList.add('selected');
+            div.textContent = ing.nom;
+            div.dataset.id = ing.id;
+            div.dataset.nom = ing.nom;
+            
+            div.addEventListener('click', () => {
+                selectEditIngredientFromSuggestion(ing.id, ing.nom);
+            });
+            
+            editIngredientSuggestions.appendChild(div);
+        });
+        
+        editIngredientSuggestions.style.display = 'block';
+    }
+    
+    function selectEditIngredientFromSuggestion(id, nom) {
+        editSelectedIngredient = { id: parseInt(id), nom: nom };
+        editIngredientSearch.value = nom;
+        editIngredientSuggestions.style.display = 'none';
+    }
+    
+    if (editIngredientSearch) {
+        editIngredientSearch.addEventListener('input', (e) => {
+            const filtered = filterIngredients(e.target.value);
+            showEditIngredientSuggestions(filtered);
+            editSelectedIngredient = null;
+        });
+        
+        editIngredientSearch.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const selected = editIngredientSuggestions.querySelector('.selected');
+                if (selected) {
+                    selectEditIngredientFromSuggestion(selected.dataset.id, selected.dataset.nom);
+                    editAddIngredientBtn.click();
+                }
+            } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                e.preventDefault();
+                const items = editIngredientSuggestions.querySelectorAll('.ingredient-suggestion-item');
+                const selected = editIngredientSuggestions.querySelector('.selected');
+                if (items.length === 0) return;
+                
+                let newIndex = 0;
+                if (selected) {
+                    selected.classList.remove('selected');
+                    const currentIndex = Array.from(items).indexOf(selected);
+                    if (e.key === 'ArrowDown') {
+                        newIndex = (currentIndex + 1) % items.length;
+                    } else {
+                        newIndex = (currentIndex - 1 + items.length) % items.length;
+                    }
+                }
+                items[newIndex].classList.add('selected');
+            }
+        });
+        
+        // Fermer les suggestions si on clique ailleurs
+        document.addEventListener('click', (e) => {
+            if (!editIngredientSearch.contains(e.target) && !editIngredientSuggestions.contains(e.target)) {
+                editIngredientSuggestions.style.display = 'none';
+            }
+        });
+    }
+    
     if (editAddIngredientBtn) {
         editAddIngredientBtn.addEventListener('click', () => {
-            const select = document.getElementById('edit-ingredient-select');
-            
-            if (select.value) {
-                const ingredientNom = select.options[select.selectedIndex].text;
+            if (editSelectedIngredient) {
                 editIngredientsList.push({
-                    ingredient_id: parseInt(select.value),
-                    nom: ingredientNom
+                    ingredient_id: editSelectedIngredient.id,
+                    nom: editSelectedIngredient.nom
                 });
                 
                 renderEditIngredientsList();
-                select.value = '';
+                editIngredientSearch.value = '';
+                editSelectedIngredient = null;
+                editIngredientSuggestions.style.display = 'none';
             }
         });
     }
@@ -99,13 +402,16 @@ document.addEventListener('DOMContentLoaded', function() {
             const content = this.querySelector('.menu-content');
             const menuData = this.dataset.menuId;
             const recetteId = this.dataset.recetteId;
+            const recetteNom = content && !content.classList.contains('empty') ? content.textContent.trim() : '';
             
             // Réinitialiser le formulaire
-            document.getElementById('menu-recette').value = '';
+            menuRecetteSearch.value = '';
+            menuRecetteInput.value = '';
             currentMenuId = menuData || null;
             
-            if (recetteId) {
-                document.getElementById('menu-recette').value = recetteId;
+            if (recetteId && recetteNom) {
+                menuRecetteSearch.value = recetteNom;
+                menuRecetteInput.value = recetteId;
             }
             
             // Afficher/masquer le bouton supprimer
@@ -142,22 +448,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Gestion du bouton modifier recette
-    const menuRecetteSelect = document.getElementById('menu-recette');
     const editRecipeBtn = document.getElementById('edit-recipe-btn');
     
-    if (menuRecetteSelect && editRecipeBtn) {
-        // Afficher/masquer le bouton modifier en fonction de la sélection
-        menuRecetteSelect.addEventListener('change', function() {
-            if (this.value) {
-                editRecipeBtn.style.display = 'flex';
-            } else {
-                editRecipeBtn.style.display = 'none';
-            }
-        });
-        
+    if (editRecipeBtn) {
         // Gérer le clic sur le bouton modifier
         editRecipeBtn.addEventListener('click', async function() {
-            const recetteId = menuRecetteSelect.value;
+            const recetteId = menuRecetteInput.value;
             if (!recetteId) return;
             
             try {
@@ -387,15 +683,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (response.ok && result.success) {
                     showNotification('Recette créée avec succès !', 'success');
                     
-                    // Ajouter la nouvelle recette à la liste déroulante
-                    const selectMenu = document.getElementById('menu-recette');
-                    const newOption = document.createElement('option');
-                    newOption.value = result.recette.id;
-                    newOption.textContent = result.recette.nom;
-                    selectMenu.appendChild(newOption);
+                    // Recharger la liste des recettes
+                    await loadAllRecettes();
                     
                     // Sélectionner automatiquement la nouvelle recette
-                    selectMenu.value = result.recette.id;
+                    menuRecetteSearch.value = result.recette.nom;
+                    menuRecetteInput.value = result.recette.id;
+                    
+                    // Afficher le bouton modifier
+                    const editRecipeBtn = document.getElementById('edit-recipe-btn');
+                    if (editRecipeBtn) {
+                        editRecipeBtn.style.display = 'flex';
+                    }
                     
                     // Fermer le modal de création
                     hideModal('recette-modal');
@@ -479,6 +778,70 @@ document.addEventListener('DOMContentLoaded', function() {
             } catch (error) {
                 console.error('Erreur:', error);
                 showNotification('Erreur lors de la modification de la recette', 'error');
+            }
+        });
+    }
+    
+    // Gestion de la création d'ingrédient depuis les modals de recettes
+    const createIngredientBtn = document.getElementById('create-ingredient-btn');
+    const editCreateIngredientBtn = document.getElementById('edit-create-ingredient-btn');
+    const ingredientForm = document.getElementById('ingredient-form');
+    const cancelIngredientBtn = document.getElementById('cancel-ingredient');
+    
+    if (createIngredientBtn) {
+        createIngredientBtn.addEventListener('click', () => {
+            showModal('ingredient-modal');
+        });
+    }
+    
+    if (editCreateIngredientBtn) {
+        editCreateIngredientBtn.addEventListener('click', () => {
+            showModal('ingredient-modal');
+        });
+    }
+    
+    if (cancelIngredientBtn) {
+        cancelIngredientBtn.addEventListener('click', () => {
+            hideModal('ingredient-modal');
+            ingredientForm.reset();
+        });
+    }
+    
+    if (ingredientForm) {
+        ingredientForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const data = {
+                nom: document.getElementById('ingredient-nom').value,
+                categorie: document.getElementById('ingredient-categorie').value
+            };
+            
+            try {
+                const response = await fetch('/api/ingredient', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    showNotification('Ingrédient créé avec succès !', 'success');
+                    
+                    // Recharger la liste des ingrédients
+                    await loadAllIngredients();
+                    
+                    // Fermer le modal et réinitialiser le formulaire
+                    hideModal('ingredient-modal');
+                    ingredientForm.reset();
+                } else {
+                    showNotification(result.message || 'Erreur lors de la création de l\'ingrédient', 'error');
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                showNotification('Erreur lors de la création de l\'ingrédient', 'error');
             }
         });
     }
