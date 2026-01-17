@@ -166,10 +166,10 @@ h2 {
     background-color: #3498db;
     color: white;
     border: none;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    font-size: 1.2rem;
+    border-radius: 6px;
+    width: 50px;
+    height: 30px;
+    font-size: 1rem;
     cursor: pointer;
     transition: all 0.3s;
     display: flex;
@@ -210,6 +210,13 @@ h2 {
     padding: 1.2rem;
     text-align: center;
     font-size: 1.1rem;
+}
+
+.date-jour {
+    font-size: 0.85rem;
+    font-weight: normal;
+    margin-top: 0.3rem;
+    opacity: 0.9;
 }
 
 .menu-table th:first-child {

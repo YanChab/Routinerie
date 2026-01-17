@@ -26,6 +26,13 @@ def index():
     jours = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi']
     moments = ['midi', 'soir']
     
+    # Calculer les dates pour chaque jour
+    dates = {}
+    jour_index = {'lundi': 0, 'mardi': 1, 'mercredi': 2, 'jeudi': 3, 'vendredi': 4}
+    for jour in jours:
+        date = monday + timedelta(days=jour_index[jour])
+        dates[jour] = date
+    
     menus = {}
     for jour in jours:
         menus[jour] = {}
@@ -45,6 +52,7 @@ def index():
                          jours=jours, 
                          moments=moments,
                          semaine=monday,
+                         dates=dates,
                          recettes=recettes,
                          week_offset=week_offset)
 

@@ -15,7 +15,10 @@
                     </div>
                 </th>
                 {% for jour in jours %}
-                <th>{{ jour|capitalize }}</th>
+                <th>
+                    <div>{{ jour|capitalize }}</div>
+                    <div class="date-jour">{{ dates[jour].strftime('%d/%m') }}</div>
+                </th>
                 {% endfor %}
             </tr>
         </thead>
