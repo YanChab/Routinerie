@@ -829,7 +829,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     hideModal('menu-modal');
                     
                     // Recharger les badges d'équilibre pour tous les menus affichés
-                    await loadEquilibreBadges();
+                    if (window.reloadEquilibreAnalyses) {
+                        await window.reloadEquilibreAnalyses();
+                    }
                 } else {
                     showNotification(result.message || 'Erreur lors de la modification de la recette', 'error');
                 }
