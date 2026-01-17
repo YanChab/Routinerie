@@ -70,45 +70,6 @@ def ingredients():
     return render_template('ingredients.html', ingredients=ingredients_list)
 
 
-@bp.route('/liste-courses')
-def liste_courses():
-    """Page de liste de courses basée sur les menus de la semaine"""
-    # Obtenir la semaine demandée ou la semaine actuelle
-    week_offset = request.args.get('week', 0, type=int)
-    today = datetime.now().date()
-    monday = today - timedelta(days=today.weekday()) + timedelta(weeks=week_offset)
-    
-    # Récupérer tous les menus de la semaine avec des recettes
-    menus = Menu.query.filter_by(semaine=monday).filter(Menu.recette_id.isnot(None)).all()
-    
-    # Collecter les ingrédients
-    ingredients_dict = {}
-    for menu in menus:
-        if menu.recette:
-            for ri in menu.recette.recette_ingredients:
-                key = (ri.ingredient.id, ri.ingredient.nom, ri.unite)
-                if key in ingredients_dict:
-                    ingredients_dict[key] += ri.quantite
-                else:
-                    ingredients_dict[key] = ri.quantite
-    
-    # Convertir en liste triée
-    ingredients_list = [
-        {
-            'nom': nom,
-            'quantite': quantite,
-            'unite': unite
-        }
-        for (_, nom, unite), quantite in sorted(ingredients_dict.items(), key=lambda x: x[0][1])
-    ]
-    
-    return render_template('shopping_list.html', 
-                         ingredients=ingredients_list,
-                         semaine=monday,
-                         week_offset=week_offset,
-                         menus=menus)
-
-
 @bp.route('/api/menu', methods=['POST'])
 def create_menu():
     """API pour créer ou modifier un menu"""
@@ -384,71 +345,7 @@ def export_shopping_list_pdf():
     data = [['Ingrédient', 'Quantité', 'Unité']]
     for (nom, unite), quantite in sorted(ingredients_aggregated.items()):
         data.append([nom, f"{quantite:.1f}", unite])
-    
-    table = Table(data, colWidths=[300, 100, 100])
-    table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 0), 12),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-        ('GRID', (0, 0), (-1, -1), 1, colors.black)
-    ]))
-    
-    elements.append(table)
-    doc.build(elements)
-    
-    buffer.seek(0)
-    return send_file(
-        buffer,
-        mimetype='application/pdf',
-        as_attachment=True,
-        download_name=f'liste_courses_{monday.strftime("%Y%m%d")}.pdf'
-    )
-
-
-@bp.route('/statistiques')
-def statistiques():
-    """Page de statistiques des recettes"""
-    # Recettes les plus utilisées
-    recettes_stats = db.session.query(
-        Recette,
-        func.count(Menu.id).label('count')
-    ).join(Menu, Menu.recette_id == Recette.id) \
-     .group_by(Recette.id) \
-     .order_by(func.count(Menu.id).desc()) \
-     .limit(10) \
-     .all()
-    
-    # Statistiques générales
-    total_recettes = Recette.query.count()
-    total_ingredients = Ingredient.query.count()
-    total_menus = Menu.query.filter(Menu.recette_id.isnot(None)).count()
-    
-    return render_template('statistiques.html',
-                         recettes_stats=recettes_stats,
-                         total_recettes=total_recettes,
-                         total_ingredients=total_ingredients,
-                         total_menus=total_menus)
-
-
-@bp.route('/api/recettes/export')
-def export_recettes():
-    """Export de toutes les recettes en JSON"""
-    recettes = Recette.query.all()
-    recettes_data = []
-    
-    for recette in recettes:
-        ingredients = []
-        for ri in recette.ingredients:
-            ingredients.append({
-                'nom': ri.ingredient.nom,
-                'quantite': ri.quantite,
-                'unite': ri.unite
-            })
-        
+    api/recettes/export
         recettes_data.append({
             'nom': recette.nom,
             'description': recette.description,
@@ -473,32 +370,7 @@ def import_recettes():
         return jsonify({'success': False, 'message': 'Aucun fichier sélectionné'}), 400
     
     try:
-        data = json.load(file)
-        imported = 0
-        
-        for recette_data in data:
-            # Créer la recette
-            recette = Recette(
-                nom=recette_data['nom'],
-                description=recette_data.get('description', ''),
-                temps_preparation=recette_data.get('temps_preparation'),
-                portions=recette_data.get('portions', 4)
-            )
-            db.session.add(recette)
-            db.session.flush()
-            
-            # Ajouter les ingrédients
-            for ing_data in recette_data.get('ingredients', []):
-                # Chercher ou créer l'ingrédient
-                ingredient = Ingredient.query.filter_by(nom=ing_data['nom']).first()
-                if not ingredient:
-                    ingredient = Ingredient(
-                        nom=ing_data['nom'],
-                        unite=ing_data.get('unite', 'g')
-                    )
-                    db.session.add(ingredient)
-                    db.session.flush()
-                
+        data    
                 # Lier l'ingrédient à la recette
                 recette_ingredient = RecetteIngredient(
                     recette_id=recette.id,
