@@ -7,10 +7,6 @@
     <table class="menu-table">
         <thead>
             <tr>
-                <th></th>
-                {% for jour in jours %}
-                <th>{{ jour|capitalize }}</th>
-                {% endfor %}
                 <th class="week-nav-cell" rowspan="3">
                     <div class="week-navigation-compact">
                         <button class="btn-nav" id="prev-week" title="Semaine précédente">◀</button>
@@ -18,6 +14,9 @@
                         <button class="btn-nav" id="next-week" title="Semaine suivante">▶</button>
                     </div>
                 </th>
+                {% for jour in jours %}
+                <th>{{ jour|capitalize }}</th>
+                {% endfor %}
             </tr>
         </thead>
         <tbody>
