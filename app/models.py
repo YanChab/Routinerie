@@ -169,18 +169,7 @@ class Menu(db.Model):
         """
         import json
         analyse = self.analyser_equilibre(use_cache=False)
-        self.equilibre_cache = json.dumps(analyse)eturn {
-            'niveau': niveau,
-            'score': score,
-            'categories': categories,
-            'manque': manque,
-            'message': message,
-            'details': {
-                'proteines': a_proteines,
-                'legumes': a_legumes,
-                'feculents': a_feculents
-            }
-        }
+        self.equilibre_cache = json.dumps(analyse)
     
     def __repr__(self):
         return f'<Menu {self.jour} {self.moment}>'
