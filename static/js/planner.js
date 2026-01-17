@@ -266,6 +266,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Fermer le modal de création
                     hideModal('recette-modal');
                     recetteForm.reset();
+                    
+                    // Soumettre automatiquement le formulaire du menu pour enregistrer
+                    const menuFormElement = document.getElementById('menu-form');
+                    if (menuFormElement) {
+                        // Déclencher la soumission du formulaire menu
+                        menuFormElement.dispatchEvent(new Event('submit'));
+                    }
                 } else {
                     showNotification(result.message || 'Erreur lors de la création de la recette', 'error');
                 }
