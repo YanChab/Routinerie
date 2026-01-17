@@ -260,7 +260,17 @@ def create_recette():
             continue
     
     db.session.commit()
-    return jsonify({'success': True, 'recette_id': recette.id})
+    return jsonify({
+        'success': True, 
+        'message': 'Recette créée avec succès',
+        'recette': {
+            'id': recette.id,
+            'nom': recette.nom,
+            'description': recette.description,
+            'temps_preparation': recette.temps_preparation,
+            'portions': recette.portions
+        }
+    }), 201
 
 
 @bp.route('/api/ingredient', methods=['POST'])
