@@ -160,7 +160,18 @@ class Menu(db.Model):
         if not a_feculents:
             manque.append('Féculents')
         
-        r
+        return {
+            'niveau': niveau,
+            'score': score,
+            'categories': categories,
+            'manque': manque,
+            'message': message,
+            'details': {
+                'proteines': a_proteines,
+                'legumes': a_legumes,
+                'feculents': a_feculents
+            }
+        }
     
     def update_equilibre_cache(self):
         """
