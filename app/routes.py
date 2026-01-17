@@ -181,10 +181,16 @@ def create_menu():
         db.session.add(menu)
     
     # Optimisation : Mettre à jour le cache d'équilibre
-    db.session.flush()  # S'assurer que le menu a un ID
-    menu.update_equilibre_cache()
-    
     db.session.commit()
+    
+    # Recharger le menu avec toutes les relations pour calculer correctement l'équilibre
+    menu = Menu.query.options(
+        joinedload(Menu.recette).joinedload(Recette.recette_ingredients).joinedload(RecetteIngredient.ingredient)
+    ).filter_by(id=menu.id).first()
+    
+    menu.update_equilibre_cache()
+    db.session.commit()
+    
     return jsonify({'success': True, 'menu_id': menu.id})
 
 
@@ -666,7 +672,8 @@ def get_menus_equilibre():
     # Créer un dictionnaire des résultats
     resultats = {}
     for menu in menus:
-        resultats[str(menu.id)] = menu.analyser_equilibre()
+        # Force le recalcul pour éviter les problèmes de cache avec joinedload
+        resultats[str(menu.id)] = menu.analyser_equilibre(use_cache=False)
     
     return jsonify({
         'success': True,
