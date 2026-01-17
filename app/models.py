@@ -99,7 +99,8 @@ class Menu(db.Model):
     CATEGORIES_PROTEINES = ['Viandes', 'Poissons', 'Céréales & Féculents']
     CATEGORIES_LEGUMES = ['Légumes']
     CATEGORIES_FECULENTS = ['Céréales & Féculents']
-    , use_cache=True):
+    
+    def analyser_equilibre(self, use_cache=True):
         """
         Analyse l'équilibre nutritionnel du menu.
         Retourne un dict avec le niveau d'équilibre et les détails.
@@ -119,8 +120,7 @@ class Menu(db.Model):
                 return json.loads(self.equilibre_cache)
             except (json.JSONDecodeError, TypeError):
                 pass  # Si le cache est invalide, recalculer
-        desequilibre' (rouge): contient 0 ou 1 groupe
-        """
+        
         if not self.recette:
             return {
                 'niveau': 'vide',
