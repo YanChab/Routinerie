@@ -3,15 +3,6 @@
 {% block title %}Planificateur de menus - Routinerie{% endblock %}
 
 {% block content %}
-<div class="planner-header">
-    <h2>Planificateur de menus</h2>
-    <div class="week-navigation">
-        <button class="btn btn-secondary" id="prev-week">← Semaine précédente</button>
-        <span class="current-week">Semaine du {{ semaine.strftime('%d/%m/%Y') }}</span>
-        <button class="btn btn-secondary" id="next-week">Semaine suivante →</button>
-    </div>
-</div>
-
 <div class="menu-grid">
     <table class="menu-table">
         <thead>
@@ -20,6 +11,13 @@
                 {% for jour in jours %}
                 <th>{{ jour|capitalize }}</th>
                 {% endfor %}
+                <th class="week-nav-cell" rowspan="3">
+                    <div class="week-navigation-compact">
+                        <button class="btn-nav" id="prev-week" title="Semaine précédente">◀</button>
+                        <span class="current-week-compact">Semaine<br>{{ semaine.strftime('%d/%m') }}</span>
+                        <button class="btn-nav" id="next-week" title="Semaine suivante">▶</button>
+                    </div>
+                </th>
             </tr>
         </thead>
         <tbody>
