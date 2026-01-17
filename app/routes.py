@@ -47,6 +47,9 @@ def index():
     # Récupérer toutes les recettes pour le sélecteur
     recettes = Recette.query.order_by(Recette.nom).all()
     
+    # Récupérer tous les ingrédients pour les modals
+    ingredients = Ingredient.query.order_by(Ingredient.nom).all()
+    
     return render_template('menu_planner.html', 
                          menus=menus, 
                          jours=jours, 
@@ -54,6 +57,7 @@ def index():
                          semaine=monday,
                          dates=dates,
                          recettes=recettes,
+                         ingredients=ingredients,
                          week_offset=week_offset)
 
 
@@ -359,6 +363,18 @@ def delete_ingredient(id):
 def get_recette(id):
     """API pour récupérer une recette"""
     recette = Recette.query.get_or_404(id)
+    
+    # Récupérer les ingrédients de la recette
+    ingredients = []
+    for ri in recette.recette_ingredients:
+        ingredients.append({
+            'id': ri.id,
+            'ingredient_id': ri.ingredient_id,
+            'ingredient_nom': ri.ingredient.nom,
+            'quantite': ri.quantite,
+            'unite': ri.unite
+        })
+    
     return jsonify({
         'success': True,
         'recette': {
@@ -366,7 +382,8 @@ def get_recette(id):
             'nom': recette.nom,
             'description': recette.description,
             'temps_preparation': recette.temps_preparation,
-            'portions': recette.portions
+            'portions': recette.portions,
+            'ingredients': ingredients
         }
     })
 
@@ -407,6 +424,32 @@ def update_recette(id):
         recette.portions = portions
     except (ValueError, TypeError):
         recette.portions = 4
+    
+    # Gérer les ingrédients
+    if 'ingredients' in data:
+        # Supprimer les anciens ingrédients
+        RecetteIngredient.query.filter_by(recette_id=recette.id).delete()
+        
+        # Ajouter les nouveaux ingrédients
+        ingredients = data.get('ingredients', [])
+        for ing in ingredients:
+            if not ing.get('ingredient_id') or not ing.get('quantite'):
+                continue
+            
+            try:
+                quantite = float(ing['quantite'])
+                if quantite <= 0:
+                    continue
+                    
+                recette_ingredient = RecetteIngredient(
+                    recette_id=recette.id,
+                    ingredient_id=int(ing['ingredient_id']),
+                    quantite=quantite,
+                    unite=ing.get('unite', 'g')
+                )
+                db.session.add(recette_ingredient)
+            except (ValueError, TypeError):
+                continue
     
     db.session.commit()
     return jsonify({'success': True, 'message': 'Recette modifiée avec succès'})

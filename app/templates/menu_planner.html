@@ -61,7 +61,10 @@
 <div id="menu-modal" class="modal">
     <div class="modal-content">
         <span class="close">&times;</span>
-        <h3>Modifier le menu</h3>
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+            <button type="submit" form="menu-form" class="btn-icon btn-icon-success" title="Enregistrer">✔</button>
+            <button type="button" class="btn-icon btn-icon-danger" id="delete-menu" style="display:none;" title="Supprimer">🗑</button>
+        </div>
         <form id="menu-form">
             <input type="hidden" id="menu-jour">
             <input type="hidden" id="menu-moment">
@@ -69,21 +72,17 @@
             
             <div class="form-group">
                 <label for="menu-recette">Recette:</label>
-                <div style="display: flex; gap: 0.5rem; align-items: flex-start;">
-                    <select id="menu-recette" style="flex: 1;">
-                        <option value="">Aucune recette</option>
-                        {% for recette in recettes %}
-                        <option value="{{ recette.id }}">{{ recette.nom }}</option>
-                        {% endfor %}
-                    </select>
-                    <button type="button" class="btn btn-secondary" id="create-recipe-btn" title="Créer une nouvelle recette">+ Créer</button>
-                </div>
+                <select id="menu-recette" style="width: 100%;">
+                    <option value="">Aucune recette</option>
+                    {% for recette in recettes %}
+                    <option value="{{ recette.id }}">{{ recette.nom }}</option>
+                    {% endfor %}
+                </select>
             </div>
             
-            <div class="form-actions" style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+            <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+                <button type="button" class="btn-icon btn-icon-secondary" id="create-recipe-btn" title="Créer une nouvelle recette">+</button>
                 <button type="button" class="btn-icon btn-icon-info" id="edit-recipe-btn" style="display:none;" title="Modifier la recette">✏️</button>
-                <button type="submit" class="btn-icon btn-icon-success" title="Enregistrer">✔</button>
-                <button type="button" class="btn-icon btn-icon-danger" id="delete-menu" style="display:none;" title="Supprimer">🗑</button>
             </div>
         </form>
     </div>
@@ -105,15 +104,17 @@
                 <textarea id="recette-description" rows="5"></textarea>
             </div>
             
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="recette-temps">Temps de préparation (min):</label>
-                    <input type="number" id="recette-temps">
-                </div>
-                
-                <div class="form-group">
-                    <label for="recette-portions">Nombre de portions:</label>
-                    <input type="number" id="recette-portions" value="4">
+            <div class="form-group">
+                <label>Ingrédients:</label>
+                <div id="ingredients-list"></div>
+                <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                    <select id="ingredient-select" style="flex: 1;">
+                        <option value="">Sélectionner un ingrédient...</option>
+                        {% for ingredient in ingredients %}
+                        <option value="{{ ingredient.id }}">{{ ingredient.nom }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="button" class="btn btn-secondary" id="add-ingredient-btn">+</button>
                 </div>
             </div>
             
@@ -143,15 +144,17 @@
                 <textarea id="edit-recette-description" rows="5"></textarea>
             </div>
             
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="edit-recette-temps">Temps de préparation (min):</label>
-                    <input type="number" id="edit-recette-temps">
-                </div>
-                
-                <div class="form-group">
-                    <label for="edit-recette-portions">Nombre de portions:</label>
-                    <input type="number" id="edit-recette-portions" value="4">
+            <div class="form-group">
+                <label>Ingrédients:</label>
+                <div id="edit-ingredients-list"></div>
+                <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                    <select id="edit-ingredient-select" style="flex: 1;">
+                        <option value="">Sélectionner un ingrédient...</option>
+                        {% for ingredient in ingredients %}
+                        <option value="{{ ingredient.id }}">{{ ingredient.nom }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="button" class="btn btn-secondary" id="edit-add-ingredient-btn">+</button>
                 </div>
             </div>
             

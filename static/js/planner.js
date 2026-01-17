@@ -6,6 +6,86 @@ document.addEventListener('DOMContentLoaded', function() {
     const deleteBtn = document.getElementById('delete-menu');
     let currentMenuId = null;
     
+    // Gestion des ingrédients pour le modal de création
+    let ingredientsList = [];
+    const ingredientsListDiv = document.getElementById('ingredients-list');
+    const addIngredientBtn = document.getElementById('add-ingredient-btn');
+    
+    function renderIngredientsList() {
+        ingredientsListDiv.innerHTML = '';
+        ingredientsList.forEach((ing, index) => {
+            const div = document.createElement('div');
+            div.style.cssText = 'display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.3rem; padding: 0.3rem; background: #ecf0f1; border-radius: 4px;';
+            div.innerHTML = `
+                <span style="flex: 1;">${ing.nom}</span>
+                <button type="button" class="btn-icon btn-icon-danger" style="width: 30px; height: 30px; font-size: 0.8rem;" onclick="removeIngredient(${index})">🗑</button>
+            `;
+            ingredientsListDiv.appendChild(div);
+        });
+    }
+    
+    window.removeIngredient = function(index) {
+        ingredientsList.splice(index, 1);
+        renderIngredientsList();
+    };
+    
+    if (addIngredientBtn) {
+        addIngredientBtn.addEventListener('click', () => {
+            const select = document.getElementById('ingredient-select');
+            
+            if (select.value) {
+                const ingredientNom = select.options[select.selectedIndex].text;
+                ingredientsList.push({
+                    ingredient_id: parseInt(select.value),
+                    nom: ingredientNom
+                });
+                
+                renderIngredientsList();
+                select.value = '';
+            }
+        });
+    }
+    
+    // Gestion des ingrédients pour le modal d'édition
+    let editIngredientsList = [];
+    const editIngredientsListDiv = document.getElementById('edit-ingredients-list');
+    const editAddIngredientBtn = document.getElementById('edit-add-ingredient-btn');
+    
+    function renderEditIngredientsList() {
+        editIngredientsListDiv.innerHTML = '';
+        editIngredientsList.forEach((ing, index) => {
+            const div = document.createElement('div');
+            div.style.cssText = 'display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.3rem; padding: 0.3rem; background: #ecf0f1; border-radius: 4px;';
+            div.innerHTML = `
+                <span style="flex: 1;">${ing.nom}</span>
+                <button type="button" class="btn-icon btn-icon-danger" style="width: 30px; height: 30px; font-size: 0.8rem;" onclick="removeEditIngredient(${index})">🗑</button>
+            `;
+            editIngredientsListDiv.appendChild(div);
+        });
+    }
+    
+    window.removeEditIngredient = function(index) {
+        editIngredientsList.splice(index, 1);
+        renderEditIngredientsList();
+    };
+    
+    if (editAddIngredientBtn) {
+        editAddIngredientBtn.addEventListener('click', () => {
+            const select = document.getElementById('edit-ingredient-select');
+            
+            if (select.value) {
+                const ingredientNom = select.options[select.selectedIndex].text;
+                editIngredientsList.push({
+                    ingredient_id: parseInt(select.value),
+                    nom: ingredientNom
+                });
+                
+                renderEditIngredientsList();
+                select.value = '';
+            }
+        });
+    }
+    
     // Ouvrir le modal pour éditer un menu
     menuCells.forEach(cell => {
         cell.addEventListener('click', function() {
@@ -35,6 +115,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 deleteBtn.style.display = 'none';
             }
             
+            // Afficher/masquer le bouton modifier recette
+            const editRecipeBtn = document.getElementById('edit-recipe-btn');
+            if (editRecipeBtn) {
+                if (recetteId) {
+                    editRecipeBtn.style.display = 'flex';
+                } else {
+                    editRecipeBtn.style.display = 'none';
+                }
+            }
+            
             showModal('menu-modal');
         });
     });
@@ -43,8 +133,61 @@ document.addEventListener('DOMContentLoaded', function() {
     const createRecipeBtn = document.getElementById('create-recipe-btn');
     if (createRecipeBtn) {
         createRecipeBtn.addEventListener('click', () => {
+            // Réinitialiser la liste des ingrédients
+            ingredientsList = [];
+            renderIngredientsList();
             // Ouvrir le modal de création de recette
             showModal('recette-modal');
+        });
+    }
+    
+    // Gestion du bouton modifier recette
+    const menuRecetteSelect = document.getElementById('menu-recette');
+    const editRecipeBtn = document.getElementById('edit-recipe-btn');
+    
+    if (menuRecetteSelect && editRecipeBtn) {
+        // Afficher/masquer le bouton modifier en fonction de la sélection
+        menuRecetteSelect.addEventListener('change', function() {
+            if (this.value) {
+                editRecipeBtn.style.display = 'flex';
+            } else {
+                editRecipeBtn.style.display = 'none';
+            }
+        });
+        
+        // Gérer le clic sur le bouton modifier
+        editRecipeBtn.addEventListener('click', async function() {
+            const recetteId = menuRecetteSelect.value;
+            if (!recetteId) return;
+            
+            try {
+                const response = await fetch(`/api/recette/${recetteId}`);
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    const recette = result.recette;
+                    
+                    // Remplir le formulaire de modification
+                    document.getElementById('edit-recette-id').value = recette.id;
+                    document.getElementById('edit-recette-nom').value = recette.nom;
+                    document.getElementById('edit-recette-description').value = recette.description || '';
+                    
+                    // Charger les ingrédients
+                    editIngredientsList = recette.ingredients.map(ing => ({
+                        ingredient_id: ing.ingredient_id,
+                        nom: ing.ingredient_nom
+                    }));
+                    renderEditIngredientsList();
+                    
+                    // Ouvrir le modal de modification
+                    showModal('edit-recette-modal');
+                } else {
+                    showNotification('Erreur lors du chargement de la recette', 'error');
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                showNotification('Erreur lors du chargement de la recette', 'error');
+            }
         });
     }
     
@@ -225,8 +368,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = {
                 nom: document.getElementById('recette-nom').value,
                 description: document.getElementById('recette-description').value,
-                temps_preparation: document.getElementById('recette-temps').value ? parseInt(document.getElementById('recette-temps').value) : null,
-                portions: document.getElementById('recette-portions').value ? parseInt(document.getElementById('recette-portions').value) : 4
+                ingredients: ingredientsList.map(ing => ({
+                    ingredient_id: ing.ingredient_id
+                }))
             };
             
             try {
@@ -256,6 +400,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Fermer le modal de création
                     hideModal('recette-modal');
                     recetteForm.reset();
+                    ingredientsList = [];
+                    renderIngredientsList();
                     
                     // Soumettre automatiquement le formulaire du menu pour enregistrer
                     const menuFormElement = document.getElementById('menu-form');
@@ -293,8 +439,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = {
                 nom: document.getElementById('edit-recette-nom').value,
                 description: document.getElementById('edit-recette-description').value,
-                temps_preparation: document.getElementById('edit-recette-temps').value ? parseInt(document.getElementById('edit-recette-temps').value) : null,
-                portions: document.getElementById('edit-recette-portions').value ? parseInt(document.getElementById('edit-recette-portions').value) : 4
+                ingredients: editIngredientsList.map(ing => ({
+                    ingredient_id: ing.ingredient_id
+                }))
             };
             
             try {
@@ -321,6 +468,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Fermer le modal de modification
                     hideModal('edit-recette-modal');
                     editRecetteForm.reset();
+                    editIngredientsList = [];
+                    renderEditIngredientsList();
+                    
+                    // Fermer aussi le modal du menu
+                    hideModal('menu-modal');
                 } else {
                     showNotification(result.message || 'Erreur lors de la modification de la recette', 'error');
                 }
