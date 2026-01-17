@@ -345,47 +345,28 @@ def export_shopping_list_pdf():
     data = [['Ingrédient', 'Quantité', 'Unité']]
     for (nom, unite), quantite in sorted(ingredients_aggregated.items()):
         data.append([nom, f"{quantite:.1f}", unite])
-    api/recettes/export
-        recettes_data.append({
-            'nom': recette.nom,
-            'description': recette.description,
-            'temps_preparation': recette.temps_preparation,
-            'portions': recette.portions,
-            'ingredients': ingredients
-        })
     
-    response = jsonify(recettes_data)
-    response.headers['Content-Disposition'] = 'attachment; filename=recettes_export.json'
-    return response
+    table = Table(data, colWidths=[300, 100, 100])
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+    ]))
+    
+    elements.append(table)
+    doc.build(elements)
+    
+    buffer.seek(0)
+    return send_file(
+        buffer,
+        mimetype='application/pdf',
+        as_attachment=True,
+        download_name=f'liste_courses_{monday.strftime("%Y%m%d")}.pdf'
+    )
 
-
-@bp.route('/api/recettes/import', methods=['POST'])
-def import_recettes():
-    """Import de recettes depuis un fichier JSON"""
-    if 'file' not in request.files:
-        return jsonify({'success': False, 'message': 'Aucun fichier fourni'}), 400
-    
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({'success': False, 'message': 'Aucun fichier sélectionné'}), 400
-    
-    try:
-        data    
-                # Lier l'ingrédient à la recette
-                recette_ingredient = RecetteIngredient(
-                    recette_id=recette.id,
-                    ingredient_id=ingredient.id,
-                    quantite=ing_data['quantite'],
-                    unite=ing_data['unite']
-                )
-                db.session.add(recette_ingredient)
-            
-            imported += 1
-        
-        db.session.commit()
-        return jsonify({'success': True, 'imported': imported})
-    
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'success': False, 'message': str(e)}), 500
 
