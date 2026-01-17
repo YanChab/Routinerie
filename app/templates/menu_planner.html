@@ -27,11 +27,13 @@
             <tr>
                 <th>{{ moment|capitalize }}</th>
                 {% for jour in jours %}
-                <td class="menu-cell" data-jour="{{ jour }}" data-moment="{{ moment }}"
+                <td class="menu-cell{% if menus[jour][moment] and menus[jour][moment].recette %} has-menu{% endif %}" 
+                    data-jour="{{ jour }}" data-moment="{{ moment }}"
                     {% if menus[jour][moment] %}
                     data-menu-id="{{ menus[jour][moment].id }}"
                     {% if menus[jour][moment].recette %}
                     data-recette-id="{{ menus[jour][moment].recette.id }}"
+                    draggable="true"
                     {% endif %}
                     {% endif %}>
                     {% if menus[jour][moment] %}

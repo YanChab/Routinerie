@@ -231,8 +231,22 @@ h2 {
     padding: 1.2rem;
     height: 120px;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s, border 0.3s;
     font-size: 1rem;
+}
+
+.menu-cell.has-menu {
+    cursor: move;
+}
+
+.menu-cell.dragging {
+    opacity: 0.5;
+    background-color: #bdc3c7;
+}
+
+.menu-cell.drag-over {
+    background-color: #d5dbdb;
+    border: 2px dashed #3498db;
 }
 
 .menu-cell:hover {

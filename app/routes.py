@@ -78,6 +78,51 @@ def ingredients():
     return render_template('ingredients.html', ingredients=ingredients_list)
 
 
+@bp.route('/api/menu/<int:menu_id>/move', methods=['PUT'])
+def move_menu(menu_id):
+    """API pour déplacer un menu vers un autre jour/moment"""
+    data = request.get_json()
+    
+    if not data:
+        return jsonify({'success': False, 'message': 'Données manquantes'}), 400
+    
+    nouveau_jour = data.get('jour')
+    nouveau_moment = data.get('moment')
+    
+    # Validation
+    jours_valides = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi']
+    moments_valides = ['midi', 'soir']
+    
+    if nouveau_jour not in jours_valides or nouveau_moment not in moments_valides:
+        return jsonify({'success': False, 'message': 'Jour ou moment invalide'}), 400
+    
+    # Récupérer le menu à déplacer
+    menu = Menu.query.get(menu_id)
+    if not menu:
+        return jsonify({'success': False, 'message': 'Menu non trouvé'}), 404
+    
+    # Vérifier s'il y a déjà un menu à la destination
+    menu_existant = Menu.query.filter_by(
+        jour=nouveau_jour,
+        moment=nouveau_moment,
+        semaine=menu.semaine
+    ).first()
+    
+    if menu_existant and menu_existant.id != menu_id:
+        # Supprimer le menu existant à la destination
+        db.session.delete(menu_existant)
+    
+    # Déplacer le menu
+    menu.jour = nouveau_jour
+    menu.moment = nouveau_moment
+    
+    try:
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Menu déplacé avec succès'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 @bp.route('/api/menu', methods=['POST'])
 def create_menu():
     """API pour créer ou modifier un menu"""

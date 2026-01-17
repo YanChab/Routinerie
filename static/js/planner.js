@@ -129,4 +129,81 @@ document.addEventListener('DOMContentLoaded', function() {
             window.location.href = '/?week=' + (currentWeek + 1);
         });
     }
+    
+    // Gestion du drag and drop pour déplacer les menus
+    let draggedElement = null;
+    let draggedMenuId = null;
+    
+    // Événement dragstart - quand on commence à déplacer
+    menuCells.forEach(cell => {
+        cell.addEventListener('dragstart', function(e) {
+            if (this.hasAttribute('draggable')) {
+                draggedElement = this;
+                draggedMenuId = this.dataset.menuId;
+                this.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/html', this.innerHTML);
+            }
+        });
+        
+        cell.addEventListener('dragend', function(e) {
+            this.classList.remove('dragging');
+            // Retirer la classe drag-over de toutes les cellules
+            menuCells.forEach(c => c.classList.remove('drag-over'));
+        });
+        
+        // Événement dragover - quand on survole une cellule
+        cell.addEventListener('dragover', function(e) {
+            if (draggedElement) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                this.classList.add('drag-over');
+            }
+        });
+        
+        cell.addEventListener('dragleave', function(e) {
+            this.classList.remove('drag-over');
+        });
+        
+        // Événement drop - quand on lâche sur une cellule
+        cell.addEventListener('drop', async function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            this.classList.remove('drag-over');
+            
+            if (draggedElement && draggedMenuId && draggedElement !== this) {
+                const nouveauJour = this.dataset.jour;
+                const nouveauMoment = this.dataset.moment;
+                
+                try {
+                    const response = await fetch(`/api/menu/${draggedMenuId}/move`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            jour: nouveauJour,
+                            moment: nouveauMoment
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        showNotification('Menu déplacé avec succès !', 'success');
+                        setTimeout(() => location.reload(), 800);
+                    } else {
+                        showNotification(result.message || 'Erreur lors du déplacement', 'error');
+                    }
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    showNotification('Erreur lors du déplacement du menu', 'error');
+                }
+            }
+            
+            draggedElement = null;
+            draggedMenuId = null;
+        });
+    });
 });
