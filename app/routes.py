@@ -47,11 +47,57 @@ def recettes():
     return render_template('recipes.html', recettes=recettes_list)
 
 
+@bp.route('/recette/<int:id>')
+def recette_detail(id):
+    """Page de détail d'une recette"""
+    recette = Recette.query.get_or_404(id)
+    return render_template('recipe_detail.html', recette=recette)
+
+
 @bp.route('/ingredients')
 def ingredients():
     """Page de gestion des ingrédients"""
     ingredients_list = Ingredient.query.order_by(Ingredient.nom).all()
     return render_template('ingredients.html', ingredients=ingredients_list)
+
+
+@bp.route('/liste-courses')
+def liste_courses():
+    """Page de liste de courses basée sur les menus de la semaine"""
+    # Obtenir la semaine demandée ou la semaine actuelle
+    week_offset = request.args.get('week', 0, type=int)
+    today = datetime.now().date()
+    monday = today - timedelta(days=today.weekday()) + timedelta(weeks=week_offset)
+    
+    # Récupérer tous les menus de la semaine avec des recettes
+    menus = Menu.query.filter_by(semaine=monday).filter(Menu.recette_id.isnot(None)).all()
+    
+    # Collecter les ingrédients
+    ingredients_dict = {}
+    for menu in menus:
+        if menu.recette:
+            for ri in menu.recette.recette_ingredients:
+                key = (ri.ingredient.id, ri.ingredient.nom, ri.unite)
+                if key in ingredients_dict:
+                    ingredients_dict[key] += ri.quantite
+                else:
+                    ingredients_dict[key] = ri.quantite
+    
+    # Convertir en liste triée
+    ingredients_list = [
+        {
+            'nom': nom,
+            'quantite': quantite,
+            'unite': unite
+        }
+        for (_, nom, unite), quantite in sorted(ingredients_dict.items(), key=lambda x: x[0][1])
+    ]
+    
+    return render_template('shopping_list.html', 
+                         ingredients=ingredients_list,
+                         semaine=monday,
+                         week_offset=week_offset,
+                         menus=menus)
 
 
 @bp.route('/api/menu', methods=['POST'])

@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Liste de courses - Routinerie{% endblock %}
+
+{% block content %}
+<div class="shopping-list-page">
+    <div class="page-header">
+        <h2>Liste de courses</h2>
+        <div class="week-navigation">
+            <a href="?week={{ week_offset - 1 }}" class="btn btn-secondary">← Semaine précédente</a>
+            <span class="current-week">Semaine du {{ semaine.strftime('%d/%m/%Y') }}</span>
+            <a href="?week={{ week_offset + 1 }}" class="btn btn-secondary">Semaine suivante →</a>
+        </div>
+    </div>
+    
+    {% if menus %}
+    <div class="menus-summary">
+        <h3>Recettes de la semaine</h3>
+        <div class="menus-list">
+            {% for menu in menus %}
+            <div class="menu-item">
+                <span class="menu-day">{{ menu.jour|capitalize }} {{ menu.moment }}</span>
+                <span class="menu-recipe">{{ menu.recette.nom }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if ingredients %}
+    <div class="shopping-list">
+        <div class="list-header">
+            <h3>Ingrédients nécessaires ({{ ingredients|length }})</h3>
+            <button class="btn btn-primary" id="print-list">🖨️ Imprimer</button>
+        </div>
+        <ul class="shopping-items">
+            {% for ingredient in ingredients %}
+            <li class="shopping-item">
+                <input type="checkbox" id="item-{{ loop.index }}" class="item-checkbox">
+                <label for="item-{{ loop.index }}">
+                    <strong>{{ ingredient.quantite|round(2) }} {{ ingredient.unite }}</strong> de {{ ingredient.nom }}
+                </label>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p>Aucune recette planifiée pour cette semaine.</p>
+        <a href="{{ url_for('main.index', week=week_offset) }}" class="btn btn-primary">Planifier des menus</a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Sauvegarder l'état des cases cochées dans localStorage
+    const checkboxes = document.querySelectorAll('.item-checkbox');
+    const storageKey = 'shopping-list-{{ semaine }}';
+    
+    // Charger l'état sauvegardé
+    const savedState = JSON.parse(localStorage.getItem(storageKey) || '{}');
+    checkboxes.forEach((checkbox, index) => {
+        if (savedState[index]) {
+            checkbox.checked = true;
+            checkbox.parentElement.classList.add('checked');
+        }
+        
+        checkbox.addEventListener('change', function() {
+            const state = JSON.parse(localStorage.getItem(storageKey) || '{}');
+            state[index] = this.checked;
+            localStorage.setItem(storageKey, JSON.stringify(state));
+            
+            if (this.checked) {
+                this.parentElement.classList.add('checked');
+            } else {
+                this.parentElement.classList.remove('checked');
+            }
+        });
+    });
+    
+    // Fonction d'impression
+    const printBtn = document.getElementById('print-list');
+    if (printBtn) {
+        printBtn.addEventListener('click', () => {
+            window.print();
+        });
+    }
+});
+</script>
+{% endblock %}

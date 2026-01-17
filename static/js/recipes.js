@@ -4,6 +4,26 @@ document.addEventListener('DOMContentLoaded', function() {
     const recetteModal = document.getElementById('recette-modal');
     const recetteForm = document.getElementById('recette-form');
     const cancelBtn = document.getElementById('cancel-recette');
+    const searchInput = document.getElementById('search-recettes');
+    
+    // Recherche en temps réel
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const recetteCards = document.querySelectorAll('.recette-card');
+            
+            recetteCards.forEach(card => {
+                const titre = card.querySelector('h3').textContent.toLowerCase();
+                const description = card.querySelector('.recette-description').textContent.toLowerCase();
+                
+                if (titre.includes(searchTerm) || description.includes(searchTerm)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    }
     
     // Ouvrir le modal pour ajouter une recette
     if (addRecetteBtn) {

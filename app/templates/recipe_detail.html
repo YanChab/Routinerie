@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}{{ recette.nom }} - Routinerie{% endblock %}
+
+{% block content %}
+<div class="recipe-detail">
+    <div class="recipe-header">
+        <h2>{{ recette.nom }}</h2>
+        <div class="recipe-actions">
+            <a href="{{ url_for('main.recettes') }}" class="btn btn-secondary">← Retour aux recettes</a>
+            <button class="btn btn-primary" id="edit-recette">Modifier</button>
+            <button class="btn btn-danger delete-recette" data-id="{{ recette.id }}">Supprimer</button>
+        </div>
+    </div>
+    
+    <div class="recipe-info">
+        <div class="info-card">
+            <div class="info-item">
+                <span class="info-label">⏱️ Temps de préparation:</span>
+                <span class="info-value">{{ recette.temps_preparation or 'Non spécifié' }} {% if recette.temps_preparation %}min{% endif %}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">🍽️ Portions:</span>
+                <span class="info-value">{{ recette.portions }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">📅 Créée le:</span>
+                <span class="info-value">{{ recette.created_at.strftime('%d/%m/%Y') }}</span>
+            </div>
+        </div>
+    </div>
+    
+    {% if recette.recette_ingredients %}
+    <div class="recipe-section">
+        <h3>Ingrédients</h3>
+        <ul class="ingredients-list">
+            {% for ri in recette.recette_ingredients %}
+            <li>
+                <strong>{{ ri.quantite }} {{ ri.unite }}</strong> de {{ ri.ingredient.nom }}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    
+    {% if recette.description %}
+    <div class="recipe-section">
+        <h3>Instructions</h3>
+        <div class="recipe-instructions">
+            {{ recette.description|replace('\n', '<br>')|safe }}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gérer la suppression
+    const deleteBtn = document.querySelector('.delete-recette');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', async function() {
+            const recetteId = this.dataset.id;
+            
+            if (!confirm('Êtes-vous sûr de vouloir supprimer cette recette ?')) {
+                return;
+            }
+            
+            try {
+                const result = await apiRequest(`/api/recette/${recetteId}`, 'DELETE');
+                if (result.success) {
+                    window.location.href = '/recettes';
+                }
+            } catch (error) {
+                alert('Erreur lors de la suppression de la recette');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
