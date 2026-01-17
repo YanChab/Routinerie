@@ -913,8 +913,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (response && response.length > 0) {
                     // Afficher les recettes sous forme de cartes cliquables
                     container.innerHTML = response.map(recette => `
-                        <div class="recipe-list-item" data-recette-id="${recette.id}" style="padding: 0.75rem 1rem; margin-bottom: 0.5rem; background: #f8f9fa; border-radius: 5px; border-left: 4px solid #3498db; cursor: pointer; transition: background 0.2s;">
-                            <span style="color: #2c3e50; font-weight: 500;">${recette.nom}</span>
+                        <div class="recipe-list-item" data-recette-id="${recette.id}" style="padding: 0.75rem 1rem; margin-bottom: 0.5rem; background: #f8f9fa; border-radius: 5px; border-left: 4px solid #dda15e; cursor: pointer; transition: background 0.2s;">
+                            <span style="color: #283618; font-weight: 500;">${recette.nom}</span>
                         </div>
                     `).join('');
                     
@@ -985,8 +985,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (response && response.length > 0) {
                     // Afficher les ingrédients sous forme de cartes cliquables
                     container.innerHTML = response.map(ingredient => `
-                        <div class="ingredient-list-item" data-ingredient-id="${ingredient.id}" style="padding: 0.75rem 1rem; margin-bottom: 0.5rem; background: #f8f9fa; border-radius: 5px; border-left: 4px solid #27ae60; cursor: pointer; transition: background 0.2s;">
-                            <span style="color: #2c3e50; font-weight: 500;">${ingredient.nom}</span>
+                        <div class="ingredient-list-item" data-ingredient-id="${ingredient.id}" style="padding: 0.75rem 1rem; margin-bottom: 0.5rem; background: #f8f9fa; border-radius: 5px; border-left: 4px solid #606c38; cursor: pointer; transition: background 0.2s;">
+                            <span style="color: #283618; font-weight: 500;">${ingredient.nom}</span>
                             <span style="color: #7f8c8d; font-size: 0.9rem; margin-left: 1rem;">(${ingredient.categorie})</span>
                         </div>
                     `).join('');
@@ -994,7 +994,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Ajouter les gestionnaires de clic
                     container.querySelectorAll('.ingredient-list-item').forEach(item => {
                         item.addEventListener('mouseenter', function() {
-                            this.style.background = '#d5f4e6';
+                            this.style.background = '#e8edd5';
                         });
                         item.addEventListener('mouseleave', function() {
                             this.style.background = '#f8f9fa';
@@ -1082,14 +1082,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (response && response.length > 0) {
                     container.innerHTML = response.map(category => `
                         <div style="margin-bottom: 1.5rem;">
-                            <h4 style="color: #2c3e50; margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 2px solid #3498db;">
+                            <h4 style="color: #283618; margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 2px solid #dda15e;">
                                 ${category.categorie}
                             </h4>
                             <ul style="list-style: none; padding: 0; margin: 0;">
                                 ${category.ingredients.map(ing => `
                                     <li style="padding: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
-                                        <span style="color: #2c3e50;">${ing.nom}</span>
-                                        ${ing.count > 1 ? `<span style="background: #3498db; color: white; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.85rem;">×${ing.count}</span>` : ''}
+                                        <span style="color: #283618;">${ing.nom}</span>
+                                        ${ing.count > 1 ? `<span style="background: #dda15e; color: white; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.85rem;">×${ing.count}</span>` : ''}
                                     </li>
                                 `).join('')}
                             </ul>
