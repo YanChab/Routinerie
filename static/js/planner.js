@@ -209,11 +209,52 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Suggestions recettes affichées');
     }
     
+    // Fonction pour afficher les détails de la recette
+    async function displayRecetteDetails(recetteId) {
+        const detailsDiv = document.getElementById('menu-recette-details');
+        const instructionsDiv = document.getElementById('menu-recette-instructions');
+        const ingredientsDiv = document.getElementById('menu-recette-ingredients');
+        
+        if (!recetteId) {
+            detailsDiv.style.display = 'none';
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/recette/${recetteId}`);
+            const result = await response.json();
+            
+            if (response.ok && result.success) {
+                const recette = result.recette;
+                
+                // Afficher les instructions
+                instructionsDiv.textContent = recette.description || 'Aucune instruction';
+                
+                // Afficher les ingrédients
+                if (recette.ingredients && recette.ingredients.length > 0) {
+                    ingredientsDiv.innerHTML = recette.ingredients.map(ing => 
+                        `<div style="padding: 0.3rem 0;">• ${ing.ingredient_nom}</div>`
+                    ).join('');
+                } else {
+                    ingredientsDiv.innerHTML = '<div style="padding: 0.3rem 0;">Aucun ingrédient</div>';
+                }
+                
+                detailsDiv.style.display = 'block';
+            }
+        } catch (error) {
+            console.error('Erreur lors du chargement des détails de la recette:', error);
+            detailsDiv.style.display = 'none';
+        }
+    }
+    
     function selectRecetteFromSuggestion(id, nom) {
         selectedRecette = { id: parseInt(id), nom: nom };
         menuRecetteSearch.value = nom;
         menuRecetteInput.value = id;
         menuRecetteSuggestions.style.display = 'none';
+        
+        // Charger et afficher les détails de la recette
+        displayRecetteDetails(id);
         
         // Afficher le bouton modifier si une recette est sélectionnée
         const editRecipeBtn = document.getElementById('edit-recipe-btn');
@@ -229,7 +270,8 @@ document.addEventListener('DOMContentLoaded', function() {
             selectedRecette = null;
             menuRecetteInput.value = '';
             
-            // Masquer le bouton modifier si le champ est modifié
+            // Masquer les détails et le bouton modifier si le champ est modifié
+            document.getElementById('menu-recette-details').style.display = 'none';
             const editRecipeBtn = document.getElementById('edit-recipe-btn');
             if (editRecipeBtn) {
                 editRecipeBtn.style.display = 'none';
@@ -407,11 +449,14 @@ document.addEventListener('DOMContentLoaded', function() {
             // Réinitialiser le formulaire
             menuRecetteSearch.value = '';
             menuRecetteInput.value = '';
+            document.getElementById('menu-recette-details').style.display = 'none';
             currentMenuId = menuData || null;
             
             if (recetteId && recetteNom) {
                 menuRecetteSearch.value = recetteNom;
                 menuRecetteInput.value = recetteId;
+                // Afficher les détails de la recette
+                displayRecetteDetails(recetteId);
             }
             
             // Afficher/masquer le bouton supprimer

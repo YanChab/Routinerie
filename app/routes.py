@@ -235,19 +235,15 @@ def create_recette():
     # Ajouter les ingrédients
     ingredients = data.get('ingredients', [])
     for ing in ingredients:
-        if not ing.get('ingredient_id') or not ing.get('quantite'):
+        if not ing.get('ingredient_id'):
             continue
         
         try:
-            quantite = float(ing['quantite'])
-            if quantite <= 0:
-                continue
-                
             recette_ingredient = RecetteIngredient(
                 recette_id=recette.id,
                 ingredient_id=int(ing['ingredient_id']),
-                quantite=quantite,
-                unite=ing.get('unite', 'g')
+                quantite=1,  # Valeur par défaut
+                unite='unité'  # Valeur par défaut
             )
             db.session.add(recette_ingredient)
         except (ValueError, TypeError):
@@ -455,19 +451,15 @@ def update_recette(id):
         # Ajouter les nouveaux ingrédients
         ingredients = data.get('ingredients', [])
         for ing in ingredients:
-            if not ing.get('ingredient_id') or not ing.get('quantite'):
+            if not ing.get('ingredient_id'):
                 continue
             
             try:
-                quantite = float(ing['quantite'])
-                if quantite <= 0:
-                    continue
-                    
                 recette_ingredient = RecetteIngredient(
                     recette_id=recette.id,
                     ingredient_id=int(ing['ingredient_id']),
-                    quantite=quantite,
-                    unite=ing.get('unite', 'g')
+                    quantite=1,  # Valeur par défaut
+                    unite='unité'  # Valeur par défaut
                 )
                 db.session.add(recette_ingredient)
             except (ValueError, TypeError):
