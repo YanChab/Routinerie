@@ -1,5 +1,15 @@
 # Routinerie - Déploiement avec Docker
 
+## À propos de Routinerie
+
+Routinerie est une application web de planification de menus avec analyse nutritionnelle. Elle permet de :
+- Créer et gérer des recettes avec ingrédients
+- Planifier des menus hebdomadaires
+- Analyser l'équilibre nutritionnel des repas (Phase 1)
+  - Classification automatique par groupes alimentaires (Protéines, Légumes, Féculents)
+  - Badges visuels avec code couleur (vert/jaune/rouge)
+  - Tooltips détaillant les catégories présentes et manquantes
+
 ## Prérequis
 - Docker et Docker Compose V2 installés sur votre serveur
 
@@ -68,14 +78,54 @@ docker compose logs -f
 ```bash
 docker compose up -d --build
 ```
+Architecture de persistence
 
-### Accéder au shell du conteneur
+L'application utilise un système de persistence en trois couches :
+
+1. **Volume Docker** : `./instance:/app/instance` monte le dossier local `instance/` dans le conteneur
+2. **Base de données** : Stockée à `/app/instance/database.db` dans le conteneur
+3. **Configuration** : `config.py` pointe explicitement vers `instance/database.db`
+
+### ✅ Trois corrections critiques appliquées
+
+Pour garantir la persistence des données, trois modifications ont été effectuées :
+
+1. **.dockerignore** : Ajout de `instance/`, `*.db`, `*.db-journal`
+   - Empêche la copie d'un dossier `instance/` vide dans l'image Docker
+   - Permet au volume Docker de prendre le contrôle total du dossier
+
+2. **Dockerfile** : Suppression de `RUN mkdir -p instance`
+   - Évite la création d'un dossier vide dans l'image
+   - Laisse le volume Docker gérer la création du dossier
+
+3. **config.py** : Chemin de base de données corrigé
+   - Anciennement : `basedir/database.db`
+   - Maintenant : `basedir/instance/database.db`
+   - Garantit que la base est créée dans le volume monté
+
+### ✅ Commande sûre
 ```bash
-docker compose exec web bash
+docker compose down  # Sans le flag -v
+docker compose up -d --build  # Les données persistent
 ```
 
-## Persistance des données
+### ❌ Commande DANGEREUSE (à NE JAMAIS utiliser)
+```bash
+docker compose down -v  # Le flag -v SUPPRIME les volumes et vos données !
+```
 
+### Vérifier la persistence après un rebuild
+
+```bash
+# Compter les données AVANT rebuild
+echo "AVANT rebuild - Ingrédients: $(docker compose exec -T web python -c 'from app import create_app, db; from app.models import Ingredient; app = create_app(); app.app_context().push(); print(Ingredient.query.count())')"
+
+# Rebuild complet
+docker compose down
+docker compose up -d --build
+
+# Compter les données APRÈS rebuild (devrait être identique)
+echo "APRÈS rebuild - Ingrédients: $(docker compose exec -T web python -c 'from app import create_app, db; from app.models import Ingredient; app = create_app(); app.app_context().push(); print(Ingredient.query.count())')"
 ⚠️ **IMPORTANT** : La base de données SQLite est stockée dans le dossier `instance/` qui est monté comme volume Docker. Les données persisteront même si vous recréez le conteneur.
 
 ### ✅ Commande sûre
@@ -100,12 +150,20 @@ Un script de sauvegarde automatique `backup.sh` est fourni. Il :
 
 **Utilisation** :
 ```bash
-./backup.sh
+./bacArrêter l'application
+docker compose down
+
+# 4. Reconstruire et relancer l'application
+docker compose up -d --build
+
+# 5. Vérifier les logs
+docker compose logs -f
+
+# 6. Vérifier que les données ont persisté
+docker compose exec web ls -lh /app/instance/
 ```
 
-### Sauvegarde manuelle
-
-Si vous préférez faire une sauvegarde manuelle :
+**Note** : Grâce aux corrections de persistence, vos données (recettes, ingrédients, menus) seront conservées même après un rebuild complet.vous préférez faire une sauvegarde manuelle :
 ```bash
 # Créer le dossier de sauvegarde
 mkdir -p backups
@@ -139,15 +197,83 @@ crontab -e
 
 # 2. Récupérer les dernières modifications de la branche Docker
 git pull origin Docker
+La base de données n'est pas dans instance/
+Si après un rebuild vous constatez que la base est à `/app/database.db` au lieu de `/app/instance/database.db` :
 
-# 3. Reconstruire et relancer l'application
-docker compose up -d --build
+```bash
+# Vérifier les trois corrections critiques :
 
-# 4. Vérifier les logs
-docker compose logs -f
+# 1. Vérifier .dockerignore
+grep "instance/" .dockerignore  # Doit afficher "instance/"
+
+# 2. Vérifier Dockerfile
+grep "mkdir -p instance" Dockerfile  # Ne doit RIEN afficher
+
+# 3. Vérifier config.py
+grep "instance/database.db" config.py  # Doit afficher le chemin correct
 ```
 
-### Restaurer une sauvegarde en cas de problème
+### Les badges d'équilibre nutritionnel ne s'affichent pas
+```bash
+# Vérifier que equilibre.js est chargé
+docker compose logs web | grep equilibre
+
+# Vérifier la console du navigateur (F12)
+# Les endpoints doivent répondre : /api/menus/equilibre
+```
+
+### Réinitialiser complètement (⚠️ SUPPRIME LES DONNÉES)
+```bash
+# Créer une sauvegarde d'abord !
+./backup.sh
+
+# Puis réinitialiser
+docker compose down -v
+docker compose up -d --build
+```
+
+### Problèmes de permissions sur le dossier instance
+```bash
+chmod -R 755 instance/
+```
+
+### Restaurer après une suppression accidentelle
+```bash
+# Arrêter l'application
+docker compose down
+
+# Restaurer la dernière sauvegarde
+ls -lt backups/ | head -2  # Voir la dernière sauvegarde
+cp backups/database_backup_YYYYMMDD_HHMMSS.db instance/database.db
+
+# Relancer
+docker compose up -d
+```
+
+## Historique des corrections critiques
+
+### 17 janvier 2025 - Correction de la persistence des données
+
+Trois corrections successives ont été nécessaires pour garantir la persistence complète :
+
+1. **Commit 5c3408c** : Ajout de `instance/` à `.dockerignore`
+2. **Commit e8f5b4a** : Suppression de `RUN mkdir -p instance` dans Dockerfile
+3. **Commit 91acd01** : Correction du chemin de base de données dans `config.py`
+
+Ces corrections garantissent que :
+- Le volume Docker contrôle entièrement le dossier `instance/`
+- La base de données est toujours créée au bon endroit
+- Les données persistent lors des rebuilds (`docker compose up -d --build`)
+- Aucune donnée n'est perdue lors des mises à jour
+
+### Tests de validation
+
+Test effectué avec succès :
+```
+AVANT rebuild - Ingrédients: 2, Recettes: 1
+[Rebuild complet avec docker compose down && up -d --build]
+APRÈS rebuild - Ingrédients: 2, Recettes: 1
+✅ Données conservéesegarde en cas de problème
 
 ```bash
 # Arrêter l'application
