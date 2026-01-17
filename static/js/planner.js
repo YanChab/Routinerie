@@ -765,14 +765,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Gestion du formulaire de modification de recette
     const editRecetteForm = document.getElementById('edit-recette-form');
-    const cancelEditRecetteBtn = document.getElementById('cancel-edit-recette');
-    
-    if (cancelEditRecetteBtn) {
-        cancelEditRecetteBtn.addEventListener('click', () => {
-            hideModal('edit-recette-modal');
-            editRecetteForm.reset();
-        });
-    }
     
     if (editRecetteForm) {
         editRecetteForm.addEventListener('submit', async function(e) {
@@ -907,4 +899,211 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+    
+    // Gestion du bouton liste des recettes
+    const showRecipesListBtn = document.getElementById('show-recipes-list-btn');
+    if (showRecipesListBtn) {
+        showRecipesListBtn.addEventListener('click', async function() {
+            const container = document.getElementById('recipes-list-container');
+            
+            try {
+                // Charger toutes les recettes
+                const response = await apiRequest('/api/recettes');
+                
+                if (response && response.length > 0) {
+                    // Afficher les recettes sous forme de cartes cliquables
+                    container.innerHTML = response.map(recette => `
+                        <div class="recipe-list-item" data-recette-id="${recette.id}" style="padding: 0.75rem 1rem; margin-bottom: 0.5rem; background: #f8f9fa; border-radius: 5px; border-left: 4px solid #3498db; cursor: pointer; transition: background 0.2s;">
+                            <span style="color: #2c3e50; font-weight: 500;">${recette.nom}</span>
+                        </div>
+                    `).join('');
+                    
+                    // Ajouter les gestionnaires de clic
+                    container.querySelectorAll('.recipe-list-item').forEach(item => {
+                        item.addEventListener('mouseenter', function() {
+                            this.style.background = '#e3f2fd';
+                        });
+                        item.addEventListener('mouseleave', function() {
+                            this.style.background = '#f8f9fa';
+                        });
+                        item.addEventListener('click', async function() {
+                            const recetteId = this.dataset.recetteId;
+                            
+                            try {
+                                const response = await fetch(`/api/recette/${recetteId}`);
+                                const result = await response.json();
+                                
+                                if (response.ok && result.success) {
+                                    const recette = result.recette;
+                                    
+                                    // Remplir le formulaire de modification
+                                    document.getElementById('edit-recette-id').value = recette.id;
+                                    document.getElementById('edit-recette-nom').value = recette.nom;
+                                    document.getElementById('edit-recette-description').value = recette.description || '';
+                                    
+                                    // Charger les ingrédients
+                                    editIngredientsList = recette.ingredients.map(ing => ({
+                                        ingredient_id: ing.ingredient_id,
+                                        nom: ing.ingredient_nom
+                                    }));
+                                    renderEditIngredientsList();
+                                    
+                                    // Fermer le modal de liste et ouvrir le modal de modification
+                                    hideModal('recipes-list-modal');
+                                    showModal('edit-recette-modal');
+                                } else {
+                                    showNotification('Erreur lors du chargement de la recette', 'error');
+                                }
+                            } catch (error) {
+                                console.error('Erreur:', error);
+                                showNotification('Erreur lors du chargement de la recette', 'error');
+                            }
+                        });
+                    });
+                } else {
+                    container.innerHTML = '<p style="text-align: center; color: #95a5a6; padding: 2rem;">Aucune recette disponible</p>';
+                }
+                
+                showModal('recipes-list-modal');
+            } catch (error) {
+                console.error('Erreur lors du chargement des recettes:', error);
+                showNotification('Erreur lors du chargement des recettes', 'error');
+            }
+        });
+    }
+    
+    // Gestion du bouton liste des ingrédients
+    const showIngredientsListBtn = document.getElementById('show-ingredients-list-btn');
+    if (showIngredientsListBtn) {
+        showIngredientsListBtn.addEventListener('click', async function() {
+            const container = document.getElementById('ingredients-list-container');
+            
+            try {
+                // Charger tous les ingrédients
+                const response = await apiRequest('/api/ingredients');
+                
+                if (response && response.length > 0) {
+                    // Afficher les ingrédients sous forme de cartes cliquables
+                    container.innerHTML = response.map(ingredient => `
+                        <div class="ingredient-list-item" data-ingredient-id="${ingredient.id}" style="padding: 0.75rem 1rem; margin-bottom: 0.5rem; background: #f8f9fa; border-radius: 5px; border-left: 4px solid #27ae60; cursor: pointer; transition: background 0.2s;">
+                            <span style="color: #2c3e50; font-weight: 500;">${ingredient.nom}</span>
+                            <span style="color: #7f8c8d; font-size: 0.9rem; margin-left: 1rem;">(${ingredient.categorie})</span>
+                        </div>
+                    `).join('');
+                    
+                    // Ajouter les gestionnaires de clic
+                    container.querySelectorAll('.ingredient-list-item').forEach(item => {
+                        item.addEventListener('mouseenter', function() {
+                            this.style.background = '#d5f4e6';
+                        });
+                        item.addEventListener('mouseleave', function() {
+                            this.style.background = '#f8f9fa';
+                        });
+                        item.addEventListener('click', async function() {
+                            const ingredientId = this.dataset.ingredientId;
+                            
+                            try {
+                                // Charger les détails de l'ingrédient
+                                const response = await apiRequest(`/api/ingredient/${ingredientId}`, 'GET');
+                                
+                                // Remplir le formulaire de modification
+                                document.getElementById('edit-ingredient-id').value = response.id;
+                                document.getElementById('edit-ingredient-nom').value = response.nom;
+                                document.getElementById('edit-ingredient-categorie').value = response.categorie;
+                                
+                                // Fermer le modal de liste et ouvrir le modal de modification
+                                hideModal('ingredients-list-modal');
+                                showModal('edit-ingredient-modal');
+                            } catch (error) {
+                                console.error('Erreur lors du chargement de l\'ingrédient:', error);
+                                showNotification('Erreur lors du chargement de l\'ingrédient', 'error');
+                            }
+                        });
+                    });
+                } else {
+                    container.innerHTML = '<p style="text-align: center; color: #95a5a6; padding: 2rem;">Aucun ingrédient disponible</p>';
+                }
+                
+                showModal('ingredients-list-modal');
+            } catch (error) {
+                console.error('Erreur lors du chargement des ingrédients:', error);
+                showNotification('Erreur lors du chargement des ingrédients', 'error');
+            }
+        });
+    }
+    
+    // Gestionnaire pour le formulaire de modification d'ingrédient
+    const editIngredientForm = document.getElementById('edit-ingredient-form');
+    if (editIngredientForm) {
+        editIngredientForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const ingredientId = document.getElementById('edit-ingredient-id').value;
+            const ingredientData = {
+                nom: document.getElementById('edit-ingredient-nom').value.trim(),
+                categorie: document.getElementById('edit-ingredient-categorie').value
+            };
+            
+            try {
+                const response = await apiRequest(`/api/ingredient/${ingredientId}`, 'PUT', ingredientData);
+                
+                if (response.success) {
+                    showNotification('Ingrédient modifié avec succès', 'success');
+                    hideModal('edit-ingredient-modal');
+                    
+                    // Recharger les données si nécessaire
+                    if (typeof loadRecettes === 'function') {
+                        loadRecettes();
+                    }
+                } else {
+                    showNotification(response.message || 'Erreur lors de la modification', 'error');
+                }
+            } catch (error) {
+                console.error('Erreur lors de la modification de l\'ingrédient:', error);
+                showNotification('Erreur lors de la modification de l\'ingrédient', 'error');
+            }
+        });
+    }
+    
+    // Gestionnaire pour le bouton d'affichage de la liste de courses
+    const showShoppingListBtn = document.getElementById('show-shopping-list-btn');
+    if (showShoppingListBtn) {
+        showShoppingListBtn.addEventListener('click', async function() {
+            try {
+                // Récupérer la semaine actuelle depuis l'URL ou utiliser 0 par défaut
+                const urlParams = new URLSearchParams(window.location.search);
+                const weekOffset = urlParams.get('week') || 0;
+                
+                // Charger la liste de courses
+                const response = await apiRequest(`/api/shopping-list?week=${weekOffset}`, 'GET');
+                
+                const container = document.getElementById('shopping-list-container');
+                
+                if (response && response.length > 0) {
+                    container.innerHTML = response.map(category => `
+                        <div style="margin-bottom: 1.5rem;">
+                            <h4 style="color: #2c3e50; margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 2px solid #3498db;">
+                                ${category.categorie}
+                            </h4>
+                            <ul style="list-style: none; padding: 0; margin: 0;">
+                                ${category.ingredients.map(ing => `
+                                    <li style="padding: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+                                        <span style="color: #2c3e50;">${ing.nom}</span>
+                                        ${ing.count > 1 ? `<span style="background: #3498db; color: white; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.85rem;">×${ing.count}</span>` : ''}
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<p style="text-align: center; color: #95a5a6; padding: 2rem;">Aucun ingrédient dans les menus de cette semaine</p>';
+                }
+                
+                showModal('shopping-list-modal');
+            } catch (error) {
+                console.error('Erreur lors du chargement de la liste de courses:', error);
+                showNotification('Erreur lors du chargement de la liste de courses', 'error');
+            }
+        });
+    }
 });

@@ -57,6 +57,13 @@
     </table>
 </div>
 
+<!-- Boutons pour afficher les listes -->
+<div style="margin-top: 1rem; text-align: center; display: flex; gap: 1rem; justify-content: center;">
+    <button type="button" class="btn btn-primary" id="show-recipes-list-btn" title="Liste des recettes">📋</button>
+    <button type="button" class="btn btn-primary" id="show-ingredients-list-btn" title="Liste des ingrédients">🥕</button>
+    <button type="button" class="btn btn-primary" id="show-shopping-list-btn" title="Liste de courses">🛒</button>
+</div>
+
 <!-- Modal pour éditer un menu -->
 <div id="menu-modal" class="modal">
     <div class="modal-content">
@@ -141,7 +148,7 @@
 
 <!-- Modal pour modifier une recette -->
 <div id="edit-recette-modal" class="modal">
-    <div class="modal-content">
+    <div class="modal-content" style="max-width: 1200px;">
         <span class="close" data-modal="edit-recette-modal">&times;</span>
         <h3>Modifier la recette</h3>
         <form id="edit-recette-form">
@@ -171,8 +178,7 @@
             </div>
             
             <div class="form-actions">
-                <button type="submit" class="btn btn-primary">Enregistrer</button>
-                <button type="button" class="btn btn-secondary" id="cancel-edit-recette">Annuler</button>
+                <button type="submit" class="btn-icon" style="background-color: #27ae60;">✔</button>
             </div>
         </form>
     </div>
@@ -211,6 +217,75 @@
                 <button type="button" class="btn btn-secondary" id="cancel-ingredient">Annuler</button>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- Modal pour modifier un ingrédient -->
+<div id="edit-ingredient-modal" class="modal">
+    <div class="modal-content">
+        <span class="close" data-modal="edit-ingredient-modal">&times;</span>
+        <h3>Modifier l'ingrédient</h3>
+        <form id="edit-ingredient-form">
+            <input type="hidden" id="edit-ingredient-id">
+            <div class="form-group">
+                <label for="edit-ingredient-nom">Nom de l'ingrédient:</label>
+                <input type="text" id="edit-ingredient-nom" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="edit-ingredient-categorie">Catégorie:</label>
+                <select id="edit-ingredient-categorie" required>
+                    <option value="Légumes">Légumes</option>
+                    <option value="Fruits">Fruits</option>
+                    <option value="Viandes">Viandes</option>
+                    <option value="Poissons">Poissons</option>
+                    <option value="Produits laitiers">Produits laitiers</option>
+                    <option value="Céréales & Féculents">Céréales & Féculents</option>
+                    <option value="Épices & Condiments">Épices & Condiments</option>
+                    <option value="Huiles & Matières grasses">Huiles & Matières grasses</option>
+                    <option value="Sucres & Produits sucrés">Sucres & Produits sucrés</option>
+                    <option value="Boissons">Boissons</option>
+                    <option value="Autre">Autre</option>
+                </select>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn-icon" style="background-color: #27ae60;">✔</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal pour afficher la liste des recettes -->
+<div id="recipes-list-modal" class="modal">
+    <div class="modal-content" style="max-width: 800px;">
+        <span class="close" data-modal="recipes-list-modal">&times;</span>
+        <h3>Liste des recettes</h3>
+        <div id="recipes-list-container" style="margin-top: 1rem;">
+            <!-- Les recettes seront chargées ici par JavaScript -->
+        </div>
+    </div>
+</div>
+
+<!-- Modal pour afficher la liste des ingrédients -->
+<div id="ingredients-list-modal" class="modal">
+    <div class="modal-content" style="max-width: 800px;">
+        <span class="close" data-modal="ingredients-list-modal">&times;</span>
+        <h3>Liste des ingrédients</h3>
+        <div id="ingredients-list-container" style="margin-top: 1rem;">
+            <!-- Les ingrédients seront chargés ici par JavaScript -->
+        </div>
+    </div>
+</div>
+
+<!-- Modal pour afficher la liste de courses de la semaine -->
+<div id="shopping-list-modal" class="modal">
+    <div class="modal-content" style="max-width: 800px;">
+        <span class="close" data-modal="shopping-list-modal">&times;</span>
+        <h3>Liste de courses de la semaine</h3>
+        <div id="shopping-list-container" style="margin-top: 1rem;">
+            <!-- La liste de courses sera chargée ici par JavaScript -->
+        </div>
     </div>
 </div>
 {% endblock %}

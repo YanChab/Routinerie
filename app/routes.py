@@ -285,6 +285,48 @@ def get_recettes():
     } for rec in recettes_list])
 
 
+@bp.route('/api/shopping-list', methods=['GET'])
+def get_shopping_list():
+    """API pour récupérer la liste de courses de la semaine"""
+    week_offset = request.args.get('week', 0, type=int)
+    today = datetime.now().date()
+    monday = today - timedelta(days=today.weekday()) + timedelta(weeks=week_offset)
+    
+    # Récupérer tous les menus de la semaine
+    menus = Menu.query.filter_by(semaine=monday).all()
+    
+    # Dictionnaire pour regrouper les ingrédients par catégorie
+    ingredients_by_category = {}
+    
+    for menu in menus:
+        if menu.recette:
+            for ri in menu.recette.recette_ingredients:
+                ingredient = ri.ingredient
+                categorie = ingredient.categorie
+                
+                if categorie not in ingredients_by_category:
+                    ingredients_by_category[categorie] = {}
+                
+                if ingredient.nom not in ingredients_by_category[categorie]:
+                    ingredients_by_category[categorie][ingredient.nom] = {
+                        'nom': ingredient.nom,
+                        'count': 0
+                    }
+                
+                ingredients_by_category[categorie][ingredient.nom]['count'] += 1
+    
+    # Convertir en liste
+    result = []
+    for categorie in sorted(ingredients_by_category.keys()):
+        ingredients_list = list(ingredients_by_category[categorie].values())
+        result.append({
+            'categorie': categorie,
+            'ingredients': sorted(ingredients_list, key=lambda x: x['nom'])
+        })
+    
+    return jsonify(result)
+
+
 @bp.route('/api/ingredient', methods=['POST'])
 def create_ingredient():
     """API pour créer un ingrédient"""
@@ -326,6 +368,16 @@ def create_ingredient():
     
     return jsonify({'success': True, 'ingredient_id': ingredient.id})
 
+
+@bp.route('/api/ingredient/<int:id>', methods=['GET'])
+def get_ingredient(id):
+    """API pour récupérer un ingrédient"""
+    ingredient = Ingredient.query.get_or_404(id)
+    return jsonify({
+        'id': ingredient.id,
+        'nom': ingredient.nom,
+        'categorie': ingredient.categorie
+    })
 
 @bp.route('/api/ingredient/<int:id>', methods=['PUT'])
 def update_ingredient(id):
