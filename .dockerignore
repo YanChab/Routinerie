@@ -25,7 +25,10 @@ env/
 # Environment
 .env
 
-# Database (on garde instance/ pour la persistance via volume)
+# Database - Ne JAMAIS copier instance/ dans l'image Docker
+# Le dossier instance/ doit être géré uniquement par le volume pour préserver les données
+instance/
+*.db
 *.db-journal
 
 # OS
