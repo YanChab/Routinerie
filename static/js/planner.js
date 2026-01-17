@@ -273,6 +273,64 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Gestion du formulaire de modification de recette
+    const editRecetteForm = document.getElementById('edit-recette-form');
+    const cancelEditRecetteBtn = document.getElementById('cancel-edit-recette');
+    
+    if (cancelEditRecetteBtn) {
+        cancelEditRecetteBtn.addEventListener('click', () => {
+            hideModal('edit-recette-modal');
+            editRecetteForm.reset();
+        });
+    }
+    
+    if (editRecetteForm) {
+        editRecetteForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const recetteId = document.getElementById('edit-recette-id').value;
+            
+            const data = {
+                nom: document.getElementById('edit-recette-nom').value,
+                description: document.getElementById('edit-recette-description').value,
+                temps_preparation: document.getElementById('edit-recette-temps').value ? parseInt(document.getElementById('edit-recette-temps').value) : null,
+                portions: document.getElementById('edit-recette-portions').value ? parseInt(document.getElementById('edit-recette-portions').value) : 4
+            };
+            
+            try {
+                const response = await fetch(`/api/recette/${recetteId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    showNotification('Recette modifiée avec succès !', 'success');
+                    
+                    // Mettre à jour le nom dans la liste déroulante
+                    const selectMenu = document.getElementById('menu-recette');
+                    const option = selectMenu.querySelector(`option[value="${recetteId}"]`);
+                    if (option) {
+                        option.textContent = data.nom;
+                    }
+                    
+                    // Fermer le modal de modification
+                    hideModal('edit-recette-modal');
+                    editRecetteForm.reset();
+                } else {
+                    showNotification(result.message || 'Erreur lors de la modification de la recette', 'error');
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                showNotification('Erreur lors de la modification de la recette', 'error');
+            }
+        });
+    }
+    
     // Gestion des boutons de fermeture des modals
     document.querySelectorAll('.close').forEach(closeBtn => {
         closeBtn.addEventListener('click', function() {

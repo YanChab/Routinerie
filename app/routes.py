@@ -355,6 +355,63 @@ def delete_ingredient(id):
     return jsonify({'success': True})
 
 
+@bp.route('/api/recette/<int:id>', methods=['GET'])
+def get_recette(id):
+    """API pour récupérer une recette"""
+    recette = Recette.query.get_or_404(id)
+    return jsonify({
+        'success': True,
+        'recette': {
+            'id': recette.id,
+            'nom': recette.nom,
+            'description': recette.description,
+            'temps_preparation': recette.temps_preparation,
+            'portions': recette.portions
+        }
+    })
+
+
+@bp.route('/api/recette/<int:id>', methods=['PUT'])
+def update_recette(id):
+    """API pour mettre à jour une recette"""
+    recette = Recette.query.get_or_404(id)
+    data = request.get_json()
+    
+    if not data:
+        return jsonify({'success': False, 'message': 'Données manquantes'}), 400
+    
+    nom = data.get('nom', '').strip()
+    if not nom:
+        return jsonify({'success': False, 'message': 'Le nom de la recette est obligatoire'}), 400
+    
+    recette.nom = nom
+    recette.description = data.get('description', '').strip()
+    
+    temps_preparation = data.get('temps_preparation')
+    if temps_preparation is not None:
+        try:
+            temps_preparation = int(temps_preparation)
+            if temps_preparation < 0 or temps_preparation > 1440:
+                return jsonify({'success': False, 'message': 'Temps de préparation invalide'}), 400
+            recette.temps_preparation = temps_preparation
+        except (ValueError, TypeError):
+            return jsonify({'success': False, 'message': 'Temps de préparation invalide'}), 400
+    else:
+        recette.temps_preparation = None
+    
+    portions = data.get('portions', 4)
+    try:
+        portions = int(portions)
+        if portions < 1 or portions > 100:
+            return jsonify({'success': False, 'message': 'Nombre de portions invalide'}), 400
+        recette.portions = portions
+    except (ValueError, TypeError):
+        recette.portions = 4
+    
+    db.session.commit()
+    return jsonify({'success': True, 'message': 'Recette modifiée avec succès'})
+
+
 @bp.route('/api/recette/<int:id>', methods=['DELETE'])
 def delete_recette(id):
     """API pour supprimer une recette"""

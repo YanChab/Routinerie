@@ -104,6 +104,16 @@ main {
     transform: scale(1.1);
 }
 
+.btn-icon-info {
+    background-color: #3498db;
+    color: white;
+}
+
+.btn-icon-info:hover {
+    background-color: #2980b9;
+    transform: scale(1.1);
+}
+
 .btn-primary {
     background-color: #3498db;
     color: white;
