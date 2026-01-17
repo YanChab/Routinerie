@@ -553,6 +553,17 @@ def update_recette(id):
                 continue
     
     db.session.commit()
+    
+    # Mettre à jour le cache d'équilibre de tous les menus utilisant cette recette
+    menus_a_mettre_a_jour = Menu.query.options(
+        joinedload(Menu.recette).joinedload(Recette.recette_ingredients).joinedload(RecetteIngredient.ingredient)
+    ).filter_by(recette_id=recette.id).all()
+    
+    for menu in menus_a_mettre_a_jour:
+        menu.update_equilibre_cache()
+    
+    db.session.commit()
+    
     return jsonify({'success': True, 'message': 'Recette modifiée avec succès'})
 
 
