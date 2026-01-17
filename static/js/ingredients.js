@@ -4,19 +4,47 @@ document.addEventListener('DOMContentLoaded', function() {
     const ingredientModal = document.getElementById('ingredient-modal');
     const ingredientForm = document.getElementById('ingredient-form');
     const cancelBtn = document.getElementById('cancel-ingredient');
+    const modalTitle = document.getElementById('modal-title');
+    let editMode = false;
+    let currentIngredientId = null;
     
     // Ouvrir le modal pour ajouter un ingrédient
     if (addIngredientBtn) {
         addIngredientBtn.addEventListener('click', () => {
+            editMode = false;
+            currentIngredientId = null;
+            modalTitle.textContent = 'Ajouter un ingrédient';
+            ingredientForm.reset();
+            document.getElementById('ingredient-id').value = '';
             showModal('ingredient-modal');
         });
     }
     
-    // Annuler l'ajout
+    // Ouvrir le modal pour modifier un ingrédient
+    const editButtons = document.querySelectorAll('.edit-ingredient');
+    editButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            editMode = true;
+            currentIngredientId = this.dataset.id;
+            modalTitle.textContent = 'Modifier un ingrédient';
+            
+            // Remplir le formulaire avec les données actuelles
+            document.getElementById('ingredient-id').value = this.dataset.id;
+            document.getElementById('ingredient-nom').value = this.dataset.nom;
+            document.getElementById('ingredient-categorie').value = this.dataset.categorie;
+            document.getElementById('ingredient-unite').value = this.dataset.unite;
+            
+            showModal('ingredient-modal');
+        });
+    });
+    
+    // Annuler l'ajout/modification
     if (cancelBtn) {
         cancelBtn.addEventListener('click', () => {
             hideModal('ingredient-modal');
             ingredientForm.reset();
+            editMode = false;
+            currentIngredientId = null;
         });
     }
     
@@ -32,8 +60,16 @@ document.addEventListener('DOMContentLoaded', function() {
             };
             
             try {
-                const response = await fetch('/api/ingredient', {
-                    method: 'POST',
+                let url = '/api/ingredient';
+                let method = 'POST';
+                
+                if (editMode && currentIngredientId) {
+                    url = `/api/ingredient/${currentIngredientId}`;
+                    method = 'PUT';
+                }
+                
+                const response = await fetch(url, {
+                    method: method,
                     headers: {
                         'Content-Type': 'application/json'
                     },
@@ -43,13 +79,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 const result = await response.json();
                 
                 if (result.success) {
-                    showNotification('Ingrédient créé avec succès !', 'success');
+                    const message = editMode ? 'Ingrédient modifié avec succès !' : 'Ingrédient créé avec succès !';
+                    showNotification(message, 'success');
                     setTimeout(() => location.reload(), 1500);
                 } else {
-                    showNotification(result.message || 'Erreur lors de la création', 'error');
+                    showNotification(result.message || 'Erreur lors de l\'opération', 'error');
                 }
             } catch (error) {
-                showNotification('Erreur lors de la création de l\'ingrédient', 'error');
+                showNotification('Erreur lors de l\'opération', 'error');
             }
         });
     }

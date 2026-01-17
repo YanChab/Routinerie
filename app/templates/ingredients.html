@@ -25,7 +25,11 @@
                 <td><span class="badge badge-category">{{ ingredient.categorie }}</span></td>
                 <td>{{ ingredient.unite }}</td>
                 <td>
-                    <button class="btn btn-sm btn-secondary">Modifier</button>
+                    <button class="btn btn-sm btn-secondary edit-ingredient" 
+                            data-id="{{ ingredient.id }}"
+                            data-nom="{{ ingredient.nom }}"
+                            data-categorie="{{ ingredient.categorie }}"
+                            data-unite="{{ ingredient.unite }}">Modifier</button>
                     <button class="btn btn-sm btn-danger delete-ingredient" data-id="{{ ingredient.id }}">Supprimer</button>
                 </td>
             </tr>
@@ -38,12 +42,13 @@
     </table>
 </div>
 
-<!-- Modal pour ajouter un ingrédient -->
+<!-- Modal pour ajouter/modifier un ingrédient -->
 <div id="ingredient-modal" class="modal">
     <div class="modal-content">
         <span class="close">&times;</span>
-        <h3>Ajouter un ingrédient</h3>
+        <h3 id="modal-title">Ajouter un ingrédient</h3>
         <form id="ingredient-form">
+            <input type="hidden" id="ingredient-id" value="">
             <div class="form-group">
                 <label for="ingredient-nom">Nom de l'ingrédient:</label>
                 <input type="text" id="ingredient-nom" required>

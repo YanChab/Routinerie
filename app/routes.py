@@ -277,6 +277,47 @@ def create_ingredient():
     return jsonify({'success': True, 'ingredient_id': ingredient.id})
 
 
+@bp.route('/api/ingredient/<int:id>', methods=['PUT'])
+def update_ingredient(id):
+    """API pour modifier un ingrédient"""
+    ingredient = Ingredient.query.get_or_404(id)
+    data = request.get_json()
+    
+    # Validation
+    if not data:
+        return jsonify({'success': False, 'message': 'Données manquantes'}), 400
+    
+    nom = data.get('nom', '').strip()
+    if not nom:
+        return jsonify({'success': False, 'message': 'Le nom de l\'ingrédient est obligatoire'}), 400
+    
+    if len(nom) > 100:
+        return jsonify({'success': False, 'message': 'Le nom ne peut pas dépasser 100 caractères'}), 400
+    
+    # Vérifier si le nom existe déjà (sauf si c'est le même ingrédient)
+    existing = Ingredient.query.filter(Ingredient.nom == nom, Ingredient.id != id).first()
+    if existing:
+        return jsonify({'success': False, 'message': 'Un autre ingrédient avec ce nom existe déjà'}), 409
+    
+    categorie = data.get('categorie', 'Autre').strip()
+    categories_valides = Ingredient.CATEGORIES
+    if categorie not in categories_valides:
+        return jsonify({'success': False, 'message': 'Catégorie invalide'}), 400
+    
+    unite = data.get('unite', 'g').strip()
+    unites_valides = ['g', 'kg', 'ml', 'L', 'cl', 'pièce', 'cuillère', 'tasse', 'pincée', 'c. à soupe', 'c. à café']
+    if unite not in unites_valides:
+        return jsonify({'success': False, 'message': f'Unité invalide'}), 400
+    
+    # Mettre à jour l'ingrédient
+    ingredient.nom = nom
+    ingredient.categorie = categorie
+    ingredient.unite = unite
+    
+    db.session.commit()
+    return jsonify({'success': True, 'ingredient_id': ingredient.id})
+
+
 @bp.route('/api/ingredient/<int:id>', methods=['DELETE'])
 def delete_ingredient(id):
     """API pour supprimer un ingrédient"""
