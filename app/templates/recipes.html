@@ -7,9 +7,13 @@
     <h2>Gestion des recettes</h2>
     <div class="header-actions">
         <input type="text" id="search-recettes" class="search-input" placeholder="🔍 Rechercher une recette...">
+        <button class="btn btn-secondary" id="export-recettes">📤 Exporter</button>
+        <button class="btn btn-secondary" id="import-recettes">📥 Importer</button>
         <button class="btn btn-primary" id="add-recette">+ Ajouter une recette</button>
     </div>
 </div>
+
+<input type="file" id="import-file" accept=".json" style="display: none;">
 
 <div class="recettes-grid">
     {% for recette in recettes %}

@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Statistiques - Routinerie{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>📊 Statistiques</h1>
+</div>
+
+<div class="stats-container">
+    <!-- Vue d'ensemble -->
+    <div class="stats-overview">
+        <div class="stat-card">
+            <div class="stat-number">{{ total_recettes }}</div>
+            <div class="stat-label">Recettes</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ total_ingredients }}</div>
+            <div class="stat-label">Ingrédients</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ total_menus }}</div>
+            <div class="stat-label">Menus planifiés</div>
+        </div>
+    </div>
+
+    <!-- Recettes les plus utilisées -->
+    <div class="stats-section">
+        <h2>🏆 Top 10 des recettes les plus utilisées</h2>
+        {% if recettes_stats %}
+        <table class="stats-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Recette</th>
+                    <th>Nombre d'utilisations</th>
+                    <th>Temps de préparation</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for recette, count in recettes_stats %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>
+                        <a href="{{ url_for('main.recette_detail', id=recette.id) }}">
+                            {{ recette.nom }}
+                        </a>
+                    </td>
+                    <td><span class="badge">{{ count }}</span></td>
+                    <td>
+                        {% if recette.temps_preparation %}
+                            {{ recette.temps_preparation }} min
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="empty-state">Aucune recette utilisée pour le moment.</p>
+        {% endif %}
+    </div>
+
+    <!-- Graphique des portions moyennes (simulation simple) -->
+    <div class="stats-section">
+        <h2>📈 Analyse des portions</h2>
+        <div class="portion-chart">
+            {% set portion_counts = {} %}
+            {% for recette, count in recettes_stats %}
+                {% set portions = recette.portions or 4 %}
+                {% if portions in portion_counts %}
+                    {% set _ = portion_counts.update({portions: portion_counts[portions] + count}) %}
+                {% else %}
+                    {% set _ = portion_counts.update({portions: count}) %}
+                {% endif %}
+            {% endfor %}
+            
+            {% if portion_counts %}
+                <div class="chart-bars">
+                    {% for portions, count in portion_counts.items() %}
+                    <div class="chart-bar-item">
+                        <div class="chart-label">{{ portions }} portions</div>
+                        <div class="chart-bar-container">
+                            <div class="chart-bar" style="width: {{ (count / recettes_stats[0][1] * 100) }}%">
+                                {{ count }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="empty-state">Pas encore de données disponibles.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

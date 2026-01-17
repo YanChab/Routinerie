@@ -31,12 +31,24 @@ document.addEventListener('DOMContentLoaded', function() {
             };
             
             try {
-                const result = await apiRequest('/api/ingredient', 'POST', data);
+                const response = await fetch('/api/ingredient', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
                 if (result.success) {
-                    location.reload();
+                    showNotification('Ingrédient créé avec succès !', 'success');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showNotification(result.message || 'Erreur lors de la création', 'error');
                 }
             } catch (error) {
-                alert('Erreur lors de la création de l\'ingrédient');
+                showNotification('Erreur lors de la création de l\'ingrédient', 'error');
             }
         });
     }
@@ -54,10 +66,11 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 const result = await apiRequest(`/api/ingredient/${ingredientId}`, 'DELETE');
                 if (result.success) {
-                    location.reload();
+                    showNotification('Ingrédient supprimé avec succès !', 'success');
+                    setTimeout(() => location.reload(), 1500);
                 }
             } catch (error) {
-                alert('Erreur lors de la suppression de l\'ingrédient');
+                showNotification('Erreur lors de la suppression de l\'ingrédient', 'error');
             }
         });
     });

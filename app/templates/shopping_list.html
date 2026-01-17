@@ -31,7 +31,10 @@
     <div class="shopping-list">
         <div class="list-header">
             <h3>Ingrédients nécessaires ({{ ingredients|length }})</h3>
-            <button class="btn btn-primary" id="print-list">🖨️ Imprimer</button>
+            <div class="list-actions">
+                <a href="{{ url_for('main.export_shopping_list_pdf', week=week_offset) }}" class="btn btn-primary">📄 Export PDF</a>
+                <button class="btn btn-primary" id="print-list">🖨️ Imprimer</button>
+            </div>
         </div>
         <ul class="shopping-items">
             {% for ingredient in ingredients %}

@@ -62,10 +62,11 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 const result = await apiRequest(`/api/menu/${currentMenuId}`, 'DELETE');
                 if (result.success) {
-                    location.reload();
+                    showNotification('Menu supprimé avec succès !', 'success');
+                    setTimeout(() => location.reload(), 1500);
                 }
             } catch (error) {
-                alert('Erreur lors de la suppression du menu');
+                showNotification('Erreur lors de la suppression du menu', 'error');
             }
         });
     }
@@ -87,12 +88,24 @@ document.addEventListener('DOMContentLoaded', function() {
             };
             
             try {
-                const result = await apiRequest('/api/menu', 'POST', data);
+                const response = await fetch('/api/menu', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
                 if (result.success) {
-                    location.reload();
+                    showNotification('Menu sauvegardé avec succès !', 'success');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showNotification(result.message || 'Erreur lors de la sauvegarde', 'error');
                 }
             } catch (error) {
-                alert('Erreur lors de la sauvegarde du menu');
+                showNotification('Erreur lors de la sauvegarde du menu', 'error');
             }
         });
     }

@@ -1,4 +1,19 @@
 // Fonctions utilitaires communes
+
+// Système de notifications
+function showNotification(message, type = 'success') {
+    const notification = document.getElementById('notification');
+    if (!notification) return;
+    
+    notification.textContent = message;
+    notification.className = `notification ${type}`;
+    notification.style.display = 'block';
+    
+    setTimeout(() => {
+        notification.style.display = 'none';
+    }, 5000);
+}
+
 function showModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {

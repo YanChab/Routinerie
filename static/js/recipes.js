@@ -5,6 +5,54 @@ document.addEventListener('DOMContentLoaded', function() {
     const recetteForm = document.getElementById('recette-form');
     const cancelBtn = document.getElementById('cancel-recette');
     const searchInput = document.getElementById('search-recettes');
+    const exportBtn = document.getElementById('export-recettes');
+    const importBtn = document.getElementById('import-recettes');
+    const importFile = document.getElementById('import-file');
+    
+    // Export de recettes
+    if (exportBtn) {
+        exportBtn.addEventListener('click', async function() {
+            try {
+                window.location.href = '/api/recettes/export';
+                showNotification('Export réussi !', 'success');
+            } catch (error) {
+                showNotification('Erreur lors de l\'export', 'error');
+            }
+        });
+    }
+    
+    // Import de recettes
+    if (importBtn && importFile) {
+        importBtn.addEventListener('click', function() {
+            importFile.click();
+        });
+        
+        importFile.addEventListener('change', async function() {
+            if (this.files.length === 0) return;
+            
+            const formData = new FormData();
+            formData.append('file', this.files[0]);
+            
+            try {
+                const response = await fetch('/api/recettes/import', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    showNotification(`${result.imported} recette(s) importée(s) avec succès !`, 'success');
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    showNotification(`Erreur: ${result.message}`, 'error');
+                }
+            } catch (error) {
+                showNotification('Erreur lors de l\'import', 'error');
+            }
+            
+            this.value = '';
+        });
+    }
     
     // Recherche en temps réel
     if (searchInput) {
@@ -56,10 +104,11 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 const result = await apiRequest('/api/recette', 'POST', data);
                 if (result.success) {
-                    location.reload();
+                    showNotification('Recette créée avec succès !', 'success');
+                    setTimeout(() => location.reload(), 1500);
                 }
             } catch (error) {
-                alert('Erreur lors de la création de la recette');
+                showNotification('Erreur lors de la création de la recette', 'error');
             }
         });
     }
@@ -78,10 +127,11 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 const result = await apiRequest(`/api/recette/${recetteId}`, 'DELETE');
                 if (result.success) {
-                    location.reload();
+                    showNotification('Recette supprimée avec succès !', 'success');
+                    setTimeout(() => location.reload(), 1500);
                 }
             } catch (error) {
-                alert('Erreur lors de la suppression de la recette');
+                showNotification('Erreur lors de la suppression de la recette', 'error');
             }
         });
     });
