@@ -53,10 +53,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const createRecipeBtn = document.getElementById('create-recipe-btn');
     if (createRecipeBtn) {
         createRecipeBtn.addEventListener('click', () => {
-            // Fermer le modal du menu
-            hideModal('menu-modal');
-            // Rediriger vers la page des recettes
-            window.location.href = '/recettes';
+            // Ouvrir le modal de création de recette
+            showModal('recette-modal');
         });
     }
     
@@ -216,6 +214,82 @@ document.addEventListener('DOMContentLoaded', function() {
             
             draggedElement = null;
             draggedMenuId = null;
+        });
+    });
+    
+    // Gestion du formulaire de création de recette
+    const recetteForm = document.getElementById('recette-form');
+    const cancelRecetteBtn = document.getElementById('cancel-recette');
+    
+    if (cancelRecetteBtn) {
+        cancelRecetteBtn.addEventListener('click', () => {
+            hideModal('recette-modal');
+            recetteForm.reset();
+        });
+    }
+    
+    if (recetteForm) {
+        recetteForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const data = {
+                nom: document.getElementById('recette-nom').value,
+                description: document.getElementById('recette-description').value,
+                temps_preparation: document.getElementById('recette-temps').value ? parseInt(document.getElementById('recette-temps').value) : null,
+                portions: document.getElementById('recette-portions').value ? parseInt(document.getElementById('recette-portions').value) : 4
+            };
+            
+            try {
+                const response = await fetch('/api/recette', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    showNotification('Recette créée avec succès !', 'success');
+                    
+                    // Ajouter la nouvelle recette à la liste déroulante
+                    const selectMenu = document.getElementById('menu-recette');
+                    const newOption = document.createElement('option');
+                    newOption.value = result.recette.id;
+                    newOption.textContent = result.recette.nom;
+                    selectMenu.appendChild(newOption);
+                    
+                    // Sélectionner automatiquement la nouvelle recette
+                    selectMenu.value = result.recette.id;
+                    
+                    // Fermer le modal de création
+                    hideModal('recette-modal');
+                    recetteForm.reset();
+                } else {
+                    showNotification(result.message || 'Erreur lors de la création de la recette', 'error');
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                showNotification('Erreur lors de la création de la recette', 'error');
+            }
+        });
+    }
+    
+    // Gestion des boutons de fermeture des modals
+    document.querySelectorAll('.close').forEach(closeBtn => {
+        closeBtn.addEventListener('click', function() {
+            const modalId = this.getAttribute('data-modal');
+            if (modalId) {
+                hideModal(modalId);
+            } else {
+                // Fermer tous les modals visibles
+                document.querySelectorAll('.modal').forEach(modal => {
+                    if (modal.style.display === 'flex') {
+                        modal.style.display = 'none';
+                    }
+                });
+            }
         });
     });
 });

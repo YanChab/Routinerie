@@ -123,7 +123,17 @@ def move_menu(menu_id):
     
     try:
         db.session.commit()
-        return jsonify({'success': True, 'message': 'Menu déplacé avec succès'})
+        return jsonify({
+            'success': True, 
+            'message': 'Recette créée avec succès',
+            'recette': {
+                'id': recette.id,
+                'nom': recette.nom,
+                'description': recette.description,
+                'temps_preparation': recette.temps_preparation,
+                'portions': recette.portions
+            }
+        }), 201
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}), 500

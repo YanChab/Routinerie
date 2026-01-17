@@ -88,6 +88,42 @@
         </form>
     </div>
 </div>
+
+<!-- Modal pour créer une recette -->
+<div id="recette-modal" class="modal">
+    <div class="modal-content">
+        <span class="close" data-modal="recette-modal">&times;</span>
+        <h3>Créer une recette</h3>
+        <form id="recette-form">
+            <div class="form-group">
+                <label for="recette-nom">Nom de la recette:</label>
+                <input type="text" id="recette-nom" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="recette-description">Instructions:</label>
+                <textarea id="recette-description" rows="5"></textarea>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="recette-temps">Temps de préparation (min):</label>
+                    <input type="number" id="recette-temps">
+                </div>
+                
+                <div class="form-group">
+                    <label for="recette-portions">Nombre de portions:</label>
+                    <input type="number" id="recette-portions" value="4">
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Créer et sélectionner</button>
+                <button type="button" class="btn btn-secondary" id="cancel-recette">Annuler</button>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
