@@ -869,9 +869,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (response.ok && result.success) {
                     showNotification('Ingrédient créé avec succès !', 'success');
                     
-                    // Recharger la liste des ingrédients
-                    await loadAllIngredients();
-                    
                     // Fermer le modal et réinitialiser le formulaire
                     hideModal('ingredient-modal');
                     ingredientForm.reset();
