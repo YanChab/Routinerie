@@ -141,11 +141,10 @@ def create_menu():
     moment = data.get('moment')
     semaine_str = data.get('semaine')
     recette_id = data.get('recette_id')
-    description = data.get('description')
     
     # Validation des champs obligatoires
-    if not jour or not moment or not semaine_str:
-        return jsonify({'success': False, 'message': 'Jour, moment et semaine sont obligatoires'}), 400
+    if not jour or not moment or not semaine_str or not recette_id:
+        return jsonify({'success': False, 'message': 'Jour, moment, semaine et recette sont obligatoires'}), 400
     
     # Validation des valeurs
     jours_valides = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi']
@@ -167,7 +166,7 @@ def create_menu():
     
     if menu:
         menu.recette_id = recette_id
-        menu.description = description
+        menu.description = None
         menu.updated_at = datetime.utcnow()
     else:
         menu = Menu(
@@ -175,7 +174,7 @@ def create_menu():
             moment=moment,
             semaine=semaine,
             recette_id=recette_id,
-            description=description
+            description=None
         )
         db.session.add(menu)
     

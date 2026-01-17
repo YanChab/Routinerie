@@ -23,13 +23,10 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Réinitialiser le formulaire
             document.getElementById('menu-recette').value = '';
-            document.getElementById('menu-description').value = '';
             currentMenuId = menuData || null;
             
             if (recetteId) {
                 document.getElementById('menu-recette').value = recetteId;
-            } else if (content && !content.classList.contains('empty')) {
-                document.getElementById('menu-description').value = content.textContent.trim();
             }
             
             // Afficher/masquer le bouton supprimer
@@ -49,6 +46,17 @@ document.addEventListener('DOMContentLoaded', function() {
             hideModal('menu-modal');
             menuForm.reset();
             currentMenuId = null;
+        });
+    }
+    
+    // Bouton créer une recette
+    const createRecipeBtn = document.getElementById('create-recipe-btn');
+    if (createRecipeBtn) {
+        createRecipeBtn.addEventListener('click', () => {
+            // Fermer le modal du menu
+            hideModal('menu-modal');
+            // Rediriger vers la page des recettes
+            window.location.href = '/recettes';
         });
     }
     
@@ -77,14 +85,18 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             
             const recetteId = document.getElementById('menu-recette').value;
-            const description = document.getElementById('menu-description').value;
+            
+            // Validation: une recette doit être sélectionnée
+            if (!recetteId) {
+                showNotification('Veuillez sélectionner une recette', 'error');
+                return;
+            }
             
             const data = {
                 jour: document.getElementById('menu-jour').value,
                 moment: document.getElementById('menu-moment').value,
                 semaine: document.getElementById('menu-semaine').value,
-                recette_id: recetteId ? parseInt(recetteId) : null,
-                description: !recetteId ? description : null
+                recette_id: parseInt(recetteId)
             };
             
             try {
