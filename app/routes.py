@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from app import db
 from app.models import Menu, Recette, Ingredient, RecetteIngredient
 from sqlalchemy import func
+from sqlalchemy.orm import joinedload
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
@@ -33,22 +34,21 @@ def index():
         date = monday + timedelta(days=jour_index[jour])
         dates[jour] = date
     
+    # Optimisation : Charger tous les menus avec leurs relations en une seule requête
+    menus_list = Menu.query.options(
+        joinedload(Menu.recette).joinedload(Recette.recette_ingredients).joinedload(RecetteIngredient.ingredient)
+    ).filter_by(semaine=monday).all()
+    
+    # Organiser les menus par jour et moment
     menus = {}
     for jour in jours:
         menus[jour] = {}
         for moment in moments:
-            menu = Menu.query.filter_by(
-                jour=jour,
-                moment=moment,
-                semaine=monday
-            ).first()
-            menus[jour][moment] = menu
+            menus[jour][moment] = None
     
-    # Récupérer toutes les recettes pour le sélecteur
-    recettes = Recette.query.order_by(Recette.nom).all()
-    
-    # Récupérer tous les ingrédients pour les modals
-    ingredients = Ingredient.query.order_by(Ingredient.nom).all()
+    for menu in menus_list:
+        if menu.jour in menus and menu.moment in moments:
+            menus[menu.jour][menu.moment] = menu
     
     return render_template('menu_planner.html', 
                          menus=menus, 
@@ -56,8 +56,6 @@ def index():
                          moments=moments,
                          semaine=monday,
                          dates=dates,
-                         recettes=recettes,
-                         ingredients=ingredients,
                          week_offset=week_offset)
 
 
@@ -182,6 +180,10 @@ def create_menu():
         )
         db.session.add(menu)
     
+    # Optimisation : Mettre à jour le cache d'équilibre
+    db.session.flush()  # S'assurer que le menu a un ID
+    menu.update_equilibre_cache()
+    
     db.session.commit()
     return jsonify({'success': True, 'menu_id': menu.id})
 
@@ -274,6 +276,31 @@ def get_ingredients():
     } for ing in ingredients_list])
 
 
+@bp.route('/api/ingredients/search', methods=['GET'])
+def search_ingredients():
+    """API optimisée pour rechercher des ingrédients"""
+    query = request.args.get('q', '').strip()
+    limit = request.args.get('limit', 10, type=int)
+    
+    if len(query) < 2:
+        return jsonify([])
+    
+    # Limite de sécurité
+    if limit > 50:
+        limit = 50
+    
+    # Recherche avec LIKE (insensible à la casse en SQLite)
+    ingredients_list = Ingredient.query.filter(
+        Ingredient.nom.ilike(f'%{query}%')
+    ).order_by(Ingredient.nom).limit(limit).all()
+    
+    return jsonify([{
+        'id': ing.id,
+        'nom': ing.nom,
+        'categorie': ing.categorie
+    } for ing in ingredients_list])
+
+
 @bp.route('/api/recettes', methods=['GET'])
 def get_recettes():
     """API pour récupérer toutes les recettes"""
@@ -292,8 +319,10 @@ def get_shopping_list():
     today = datetime.now().date()
     monday = today - timedelta(days=today.weekday()) + timedelta(weeks=week_offset)
     
-    # Récupérer tous les menus de la semaine
-    menus = Menu.query.filter_by(semaine=monday).all()
+    # Optimisation : Récupérer tous les menus avec leurs relations en une requête
+    menus = Menu.query.options(
+        joinedload(Menu.recette).joinedload(Recette.recette_ingredients).joinedload(RecetteIngredient.ingredient)
+    ).filter_by(semaine=monday).all()
     
     # Dictionnaire pour regrouper les ingrédients par catégorie
     ingredients_by_category = {}
@@ -547,8 +576,10 @@ def export_shopping_list_pdf():
     monday = today - timedelta(days=today.weekday()) + timedelta(weeks=week_offset)
     sunday = monday + timedelta(days=6)
     
-    # Récupérer tous les menus de la semaine
-    menus = Menu.query.filter(
+    # Optimisation : Récupérer tous les menus avec leurs relations en une requête
+    menus = Menu.query.options(
+        joinedload(Menu.recette).joinedload(Recette.recette_ingredients).joinedload(RecetteIngredient.ingredient)
+    ).filter(
         Menu.semaine == monday,
         Menu.recette_id.isnot(None)
     ).all()
@@ -620,18 +651,22 @@ def get_menu_equilibre(menu_id):
 
 @bp.route('/api/menus/equilibre', methods=['POST'])
 def get_menus_equilibre():
-    """API pour obtenir l'analyse d'équilibre de plusieurs menus"""
+    """API optimisée pour obtenir l'analyse d'équilibre de plusieurs menus"""
     data = request.get_json()
     menu_ids = data.get('menu_ids', [])
     
     if not menu_ids:
         return jsonify({'success': False, 'message': 'Aucun menu spécifié'}), 400
     
+    # Optimisation : Charger tous les menus en une seule requête avec joinedload
+    menus = Menu.query.options(
+        joinedload(Menu.recette).joinedload(Recette.recette_ingredients).joinedload(RecetteIngredient.ingredient)
+    ).filter(Menu.id.in_(menu_ids)).all()
+    
+    # Créer un dictionnaire des résultats
     resultats = {}
-    for menu_id in menu_ids:
-        menu = Menu.query.get(menu_id)
-        if menu:
-            resultats[str(menu_id)] = menu.analyser_equilibre()
+    for menu in menus:
+        resultats[str(menu.id)] = menu.analyser_equilibre()
     
     return jsonify({
         'success': True,

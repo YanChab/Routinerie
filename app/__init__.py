@@ -26,13 +26,25 @@ def create_app():
     with app.app_context():
         try:
             # Utiliser inspect pour vérifier si les tables existent avant de les créer
-            from sqlalchemy import inspect
+            from sqlalchemy import inspect, text
             inspector = inspect(db.engine)
             existing_tables = inspector.get_table_names()
             
             if not existing_tables:
                 # Base de données vide, créer toutes les tables
                 db.create_all()
+            else:
+                # Optimisation : Ajouter la colonne equilibre_cache si elle n'existe pas
+                if 'menu' in existing_tables:
+                    columns = [col['name'] for col in inspector.get_columns('menu')]
+                    if 'equilibre_cache' not in columns:
+                        try:
+                            with db.engine.connect() as conn:
+                                conn.execute(text('ALTER TABLE menu ADD COLUMN equilibre_cache TEXT'))
+                                conn.commit()
+                            print("✅ Colonne equilibre_cache ajoutée avec succès")
+                        except Exception as alter_error:
+                            print(f"Info: Colonne equilibre_cache déjà présente ou erreur - {str(alter_error)[:100]}")
         except Exception as e:
             # En cas d'erreur, logger et continuer
             # Les tables existent probablement déjà

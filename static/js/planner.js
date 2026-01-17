@@ -30,33 +30,24 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     
     // Système de recherche d'ingrédients pour le modal de création
-    let allIngredients = [];
     let selectedIngredient = null;
     const ingredientSearch = document.getElementById('ingredient-search');
     const ingredientSuggestions = document.getElementById('ingredient-suggestions');
     
-    // Charger tous les ingrédients au démarrage
-    async function loadAllIngredients() {
-        try {
-            const response = await apiRequest('/api/ingredients');
-            allIngredients = response;
-            console.log('Ingrédients chargés:', allIngredients.length);
-        } catch (error) {
-            console.error('Erreur lors du chargement des ingrédients:', error);
-        }
-    }
+    // Optimisation : Recherche côté serveur au lieu de charger tous les ingrédients
+    let searchTimeout = null;
     
-    loadAllIngredients();
-    
-    function filterIngredients(searchText) {
-        const search = searchText.toLowerCase().trim();
-        if (!search) return [];
+    async function searchIngredientsOnServer(searchText) {
+        const search = searchText.trim();
+        if (search.length < 2) return [];
         
-        const filtered = allIngredients.filter(ing => 
-            ing.nom.toLowerCase().includes(search)
-        ).slice(0, 10); // Limite à 10 suggestions
-        console.log('Recherche:', search, '- Résultats:', filtered.length);
-        return filtered;
+        try {
+            const response = await apiRequest(`/api/ingredients/search?q=${encodeURIComponent(search)}&limit=10`);
+            return response;
+        } catch (error) {
+            console.error('Erreur lors de la recherche d\'ingrédients:', error);
+            return [];
+        }
     }
     
     function showIngredientSuggestions(ingredients) {
@@ -93,10 +84,21 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     if (ingredientSearch) {
-        ingredientSearch.addEventListener('input', (e) => {
-            const filtered = filterIngredients(e.target.value);
-            showIngredientSuggestions(filtered);
-            selectedIngredient = null;
+        ingredientSearch.addEventListener('input', async (e) => {
+            // Optimisation : Debounce pour éviter trop de requêtes
+            clearTimeout(searchTimeout);
+            
+            if (e.target.value.trim().length < 2) {
+                ingredientSuggestions.style.display = 'none';
+                selectedIngredient = null;
+                return;
+            }
+            
+            searchTimeout = setTimeout(async () => {
+                const filtered = await searchIngredientsOnServer(e.target.value);
+                showIngredientSuggestions(filtered);
+                selectedIngredient = null;
+            }, 300); // Attendre 300ms après la dernière frappe
         });
         
         ingredientSearch.addEventListener('keydown', (e) => {

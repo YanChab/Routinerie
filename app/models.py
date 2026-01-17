@@ -88,6 +88,7 @@ class Menu(db.Model):
     semaine = db.Column(db.Date, nullable=False)  # date du lundi de la semaine
     recette_id = db.Column(db.Integer, db.ForeignKey('recette.id'), nullable=True)
     description = db.Column(db.Text)  # optionnel si pas de recette associée
+    equilibre_cache = db.Column(db.Text)  # Cache JSON de l'analyse d'équilibre (optimisation)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -98,16 +99,27 @@ class Menu(db.Model):
     CATEGORIES_PROTEINES = ['Viandes', 'Poissons', 'Céréales & Féculents']
     CATEGORIES_LEGUMES = ['Légumes']
     CATEGORIES_FECULENTS = ['Céréales & Féculents']
-    
-    def analyser_equilibre(self):
+    , use_cache=True):
         """
         Analyse l'équilibre nutritionnel du menu.
         Retourne un dict avec le niveau d'équilibre et les détails.
+        
+        Args:
+            use_cache: Si True, utilise le cache si disponible (optimisation)
         
         Niveaux:
         - 'equilibre' (vert): contient protéines + légumes + féculents
         - 'moyen' (jaune): contient 2 des 3 groupes
         - 'desequilibre' (rouge): contient 0 ou 1 groupe
+        """
+        # Optimisation : Utiliser le cache si disponible
+        if use_cache and self.equilibre_cache:
+            try:
+                import json
+                return json.loads(self.equilibre_cache)
+            except (json.JSONDecodeError, TypeError):
+                pass  # Si le cache est invalide, recalculer
+        desequilibre' (rouge): contient 0 ou 1 groupe
         """
         if not self.recette:
             return {
@@ -148,7 +160,16 @@ class Menu(db.Model):
         if not a_feculents:
             manque.append('Féculents')
         
-        return {
+        r
+    
+    def update_equilibre_cache(self):
+        """
+        Met à jour le cache de l'analyse d'équilibre.
+        À appeler après modification du menu ou de la recette associée.
+        """
+        import json
+        analyse = self.analyser_equilibre(use_cache=False)
+        self.equilibre_cache = json.dumps(analyse)eturn {
             'niveau': niveau,
             'score': score,
             'categories': categories,
