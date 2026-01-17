@@ -76,13 +76,98 @@ docker compose exec web bash
 
 ## Persistance des données
 
-La base de données SQLite est stockée dans le dossier `instance/` qui est monté comme volume Docker. Les données persisteront même si vous recréez le conteneur.
+⚠️ **IMPORTANT** : La base de données SQLite est stockée dans le dossier `instance/` qui est monté comme volume Docker. Les données persisteront même si vous recréez le conteneur.
+
+### ✅ Commande sûre
+```bash
+docker compose down  # Sans le flag -v
+```
+
+### ❌ Commande DANGEREUSE (à NE JAMAIS utiliser)
+```bash
+docker compose down -v  # Le flag -v SUPPRIME les volumes et vos données !
+```
+
+## Sauvegarde automatique de la base de données
+
+### Script de sauvegarde
+
+Un script de sauvegarde automatique `backup.sh` est fourni. Il :
+- Crée une sauvegarde horodatée de la base de données
+- La stocke dans le dossier `backups/`
+- Supprime automatiquement les sauvegardes de plus de 30 jours
+- Affiche un rapport détaillé
+
+**Utilisation** :
+```bash
+./backup.sh
+```
+
+### Sauvegarde manuelle
+
+Si vous préférez faire une sauvegarde manuelle :
+```bash
+# Créer le dossier de sauvegarde
+mkdir -p backups
+
+# Créer une sauvegarde
+docker compose exec -T web cp /app/instance/database.db /tmp/backup_$(date +%Y%m%d_%H%M%S).db
+
+# Copier sur le serveur hôte
+docker cp routinerie_app:/tmp/backup_$(date +%Y%m%d_%H%M%S).db ./backups/
+```
+
+### Automatiser les sauvegardes avec cron
+
+Pour sauvegarder automatiquement tous les jours à 2h du matin :
+
+```bash
+# Éditer le crontab
+crontab -e
+
+# Ajouter cette ligne (ajustez le chemin)
+0 2 * * * cd /chemin/vers/Routinerie && ./backup.sh >> ./backups/backup.log 2>&1
+```
 
 ## Mise à jour de l'application
 
+### ✅ Procédure recommandée (avec sauvegarde)
+
 ```bash
+# 1. Créer une sauvegarde avant la mise à jour
+./backup.sh
+
+# 2. Récupérer les dernières modifications
 git pull
+
+# 3. Reconstruire et relancer l'application
 docker compose up -d --build
+
+# 4. Vérifier les logs
+docker compose logs -f
+```
+
+### Restaurer une sauvegarde en cas de problème
+
+```bash
+# Arrêter l'application
+docker compose down
+
+# Restaurer la sauvegarde (remplacer DATE par la date de votre sauvegarde)
+cp ./backups/database_backup_DATE.db ./instance/database.db
+
+# Relancer l'application
+docker compose up -d
+```
+
+## Sauvegarde de la base de données (ancienne méthode)
+
+```bash
+# Créer une sauvegarde (méthode manuelle alternative)
+docker compose exec web cp /app/instance/database.db /app/instance/database_backup_$(date +%Y%m%d).db
+
+# Copier la sauvegarde sur le serveur hôte
+docker cp routinerie_app:/app/instance/database_backup_$(date +%Y%m%d).db ./
 ```
 
 ## Configuration
@@ -93,16 +178,6 @@ Pour changer le port (par exemple 8080) :
 ```yaml
 ports:
   - "8080:5001"
-```
-
-## Sauvegarde de la base de données
-
-```bash
-# Créer une sauvegarde
-docker compose exec web cp /app/instance/menus.db /app/instance/menus_backup_$(date +%Y%m%d).db
-
-# Copier la sauvegarde sur le serveur hôte
-docker cp routinerie_app:/app/instance/menus_backup_$(date +%Y%m%d).db ./
 ```
 
 ## Dépannage
