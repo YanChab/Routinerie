@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Planificateur de menus - Routinerie{% endblock %}
+
+{% block content %}
+<div class="planner-header">
+    <h2>Planificateur de menus</h2>
+    <div class="week-navigation">
+        <button class="btn btn-secondary" id="prev-week">← Semaine précédente</button>
+        <span class="current-week">Semaine du {{ semaine.strftime('%d/%m/%Y') }}</span>
+        <button class="btn btn-secondary" id="next-week">Semaine suivante →</button>
+    </div>
+</div>
+
+<div class="menu-grid">
+    <table class="menu-table">
+        <thead>
+            <tr>
+                <th></th>
+                {% for jour in jours %}
+                <th>{{ jour|capitalize }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for moment in moments %}
+            <tr>
+                <th>{{ moment|capitalize }}</th>
+                {% for jour in jours %}
+                <td class="menu-cell" data-jour="{{ jour }}" data-moment="{{ moment }}">
+                    {% if menus[jour][moment] %}
+                        <div class="menu-content">
+                            {% if menus[jour][moment].recette %}
+                                <strong>{{ menus[jour][moment].recette.nom }}</strong>
+                            {% else %}
+                                {{ menus[jour][moment].description or 'Cliquez pour ajouter' }}
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div class="menu-content empty">
+                            Cliquez pour ajouter
+                        </div>
+                    {% endif %}
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal pour éditer un menu -->
+<div id="menu-modal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h3>Modifier le menu</h3>
+        <form id="menu-form">
+            <input type="hidden" id="menu-jour">
+            <input type="hidden" id="menu-moment">
+            <input type="hidden" id="menu-semaine" value="{{ semaine }}">
+            
+            <div class="form-group">
+                <label for="menu-description">Description:</label>
+                <textarea id="menu-description" rows="3" placeholder="Entrez une description..."></textarea>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Enregistrer</button>
+                <button type="button" class="btn btn-secondary" id="cancel-menu">Annuler</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/planner.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Ingrédients - Routinerie{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Gestion des ingrédients</h2>
+    <button class="btn btn-primary" id="add-ingredient">+ Ajouter un ingrédient</button>
+</div>
+
+<div class="ingredients-list">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Unité</th>
+                <th>Date d'ajout</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ingredient in ingredients %}
+            <tr>
+                <td>{{ ingredient.nom }}</td>
+                <td>{{ ingredient.unite }}</td>
+                <td>{{ ingredient.created_at.strftime('%d/%m/%Y') }}</td>
+                <td>
+                    <button class="btn btn-sm btn-secondary">Modifier</button>
+                    <button class="btn btn-sm btn-danger">Supprimer</button>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4" class="empty-state">Aucun ingrédient pour le moment. Commencez par en ajouter !</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal pour ajouter un ingrédient -->
+<div id="ingredient-modal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h3>Ajouter un ingrédient</h3>
+        <form id="ingredient-form">
+            <div class="form-group">
+                <label for="ingredient-nom">Nom de l'ingrédient:</label>
+                <input type="text" id="ingredient-nom" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="ingredient-unite">Unité de mesure:</label>
+                <select id="ingredient-unite" required>
+                    <option value="">Sélectionner...</option>
+                    <option value="g">Grammes (g)</option>
+                    <option value="kg">Kilogrammes (kg)</option>
+                    <option value="ml">Millilitres (ml)</option>
+                    <option value="L">Litres (L)</option>
+                    <option value="pièce">Pièce</option>
+                    <option value="c. à soupe">Cuillère à soupe</option>
+                    <option value="c. à café">Cuillère à café</option>
+                </select>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Enregistrer</button>
+                <button type="button" class="btn btn-secondary" id="cancel-ingredient">Annuler</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/ingredients.js') }}"></script>
+{% endblock %}

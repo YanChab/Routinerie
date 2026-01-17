@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Recettes - Routinerie{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Gestion des recettes</h2>
+    <button class="btn btn-primary" id="add-recette">+ Ajouter une recette</button>
+</div>
+
+<div class="recettes-grid">
+    {% for recette in recettes %}
+    <div class="recette-card">
+        <h3>{{ recette.nom }}</h3>
+        <p class="recette-description">{{ recette.description[:100] }}...</p>
+        <div class="recette-meta">
+            {% if recette.temps_preparation %}
+            <span>⏱️ {{ recette.temps_preparation }} min</span>
+            {% endif %}
+            <span>🍽️ {{ recette.portions }} portions</span>
+        </div>
+        <div class="card-actions">
+            <button class="btn btn-sm btn-secondary">Voir</button>
+            <button class="btn btn-sm btn-danger">Supprimer</button>
+        </div>
+    </div>
+    {% else %}
+    <p class="empty-state">Aucune recette pour le moment. Commencez par en ajouter une !</p>
+    {% endfor %}
+</div>
+
+<!-- Modal pour ajouter une recette -->
+<div id="recette-modal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h3>Ajouter une recette</h3>
+        <form id="recette-form">
+            <div class="form-group">
+                <label for="recette-nom">Nom de la recette:</label>
+                <input type="text" id="recette-nom" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="recette-description">Instructions:</label>
+                <textarea id="recette-description" rows="5"></textarea>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="recette-temps">Temps de préparation (min):</label>
+                    <input type="number" id="recette-temps">
+                </div>
+                
+                <div class="form-group">
+                    <label for="recette-portions">Nombre de portions:</label>
+                    <input type="number" id="recette-portions" value="4">
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Enregistrer</button>
+                <button type="button" class="btn btn-secondary" id="cancel-recette">Annuler</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/recipes.js') }}"></script>
+{% endblock %}
