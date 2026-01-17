@@ -150,10 +150,8 @@ h2 {
 
 /* Navigation de semaine compacte dans le tableau */
 .week-nav-cell {
-    background-color: #ecf0f1 !important;
     vertical-align: middle !important;
     padding: 0.5rem !important;
-    border-left: 3px solid #34495e !important;
 }
 
 .week-navigation-compact {
