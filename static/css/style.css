@@ -152,6 +152,8 @@ h2 {
 .week-nav-cell {
     vertical-align: middle !important;
     padding: 0.5rem !important;
+    min-width: 90px;
+    width: 90px;
 }
 
 .week-navigation-compact {

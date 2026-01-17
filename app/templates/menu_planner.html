@@ -10,7 +10,7 @@
                 <th class="week-nav-cell" rowspan="3">
                     <div class="week-navigation-compact">
                         <button class="btn-nav" id="prev-week" title="Semaine précédente">◀</button>
-                        <span class="current-week-compact">Semaine<br>{{ semaine.strftime('%d/%m') }}</span>
+                        <span class="current-week-compact">Sem {{ semaine.isocalendar()[1] }}</span>
                         <button class="btn-nav" id="next-week" title="Semaine suivante">▶</button>
                     </div>
                 </th>
