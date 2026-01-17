@@ -137,8 +137,8 @@ crontab -e
 # 1. Créer une sauvegarde avant la mise à jour
 ./backup.sh
 
-# 2. Récupérer les dernières modifications
-git pull
+# 2. Récupérer les dernières modifications de la branche Docker
+git pull origin Docker
 
 # 3. Reconstruire et relancer l'application
 docker compose up -d --build
