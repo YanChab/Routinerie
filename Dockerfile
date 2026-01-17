@@ -21,9 +21,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copier le reste de l'application
 COPY . .
 
-# Créer le répertoire instance s'il n'existe pas
-RUN mkdir -p instance
-
 # Exposer le port 5001
 EXPOSE 5001
 
